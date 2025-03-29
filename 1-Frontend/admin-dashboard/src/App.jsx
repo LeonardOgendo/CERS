@@ -20,8 +20,7 @@ import Messages from './components/pages/Messages';
 import ProtectedRoute from './components/authentication/ProtectedRoute';
 
 const App = () => {
-
-    console.log("Layout loaded")
+    
     return(
         <div>
             <ToastContainer position='top-right' autoClose={4000} hideProgressBar={true}  />

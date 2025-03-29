@@ -28,7 +28,7 @@ const AuthProvider = ({children}) => {
             const accessToken = localStorage.getItem('access_token');
 
             if (refreshToken) {
-                await axiosInstance.post("/logout/",
+                await axiosInstance.post("/users/logout/",
                     {refresh_token: refreshToken},
                     {
                         headers: {
