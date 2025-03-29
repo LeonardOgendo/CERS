@@ -1,31 +1,61 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Emergency
 from .serializers import EmergencySerializer
 
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class ReportEmergencyView(generics.CreateAPIView):
     serializer_class = EmergencySerializer
-    permission_classes = []  # No authentication required
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Only set user if authenticated, otherwise leaves it as None
-        if self.request.user.is_authenticated:
-            serializer.save(user=self.request.user)
-        else:
-            serializer.save()
+        serializer.save(user=self.request.user)
+
 
 class EmergencyListView(generics.ListAPIView):
     serializer_class = EmergencySerializer
-    permission_classes = []  # Changed to allow public viewing (adjust as needed)
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['emergency_type', 'status', 'severity']
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
-        # Return all emergencies or filter by user if authenticated
+        queryset = Emergency.objects.all().order_by('-created_at')
+
+        # For authenticated users, filter by their reports by default
+        if self.request.user.is_authenticated:
+            queryset = queryset.filter(user=self.request.user)
+
+        return queryset
+
+
+class EmergencyDetailView(generics.RetrieveAPIView):
+    queryset = Emergency.objects.all()
+    serializer_class = EmergencySerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'id'
+
+    def get_queryset(self):
         if self.request.user.is_authenticated:
             return Emergency.objects.filter(user=self.request.user)
-        return Emergency.objects.all()
+        return Emergency.objects.none()
+
 
 class LiveLocationView(generics.GenericAPIView):
-    permission_classes = []  # Changed to allow public access (adjust as needed)
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         latitude = request.data.get('latitude')

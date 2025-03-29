@@ -49,7 +49,6 @@ const Login = () => {
     setErrors({});
     setSuccessMessage("");
 
-    // Client-side validation
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -58,12 +57,8 @@ const Login = () => {
 
     try {
       const response = await UsersAPI.post("/login/", formData);
-
-      // saving to local storage
       localStorage.setItem("access_token", response.data.access);
       localStorage.setItem("refresh_token", response.data.refresh);
-
-      // updating context
       login(response.data.user);
 
       setSuccessMessage("Login successful! Redirecting ...");
@@ -138,7 +133,7 @@ const Login = () => {
                 Login
               </button>
               <p className="small fw-bold mt-2 pt-1 mb-2">
-                Don't have an account? <Link to="register">Register</Link>
+                Don't have an account? <Link to="/register">Register</Link>
               </p>
             </div>
           </form>

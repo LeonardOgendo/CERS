@@ -74,6 +74,17 @@ class ProfileView(RetrieveUpdateAPIView):
         profile, created = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        if 'profile_picture' in self.request.FILES:
+            instance.profile_picture = self.request.FILES['profile_picture']
+            instance.save()
+
 
 class LocationUpdateView(APIView):
     permission_classes = [IsAuthenticated]

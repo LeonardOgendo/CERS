@@ -1,10 +1,10 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Account = () => {
     const { user } = useContext(AuthContext);
-    const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
         phone_number: '',
@@ -16,42 +16,45 @@ const Account = () => {
     const [previewImage, setPreviewImage] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const response = await fetch('http://localhost:8000/api/users/profile/', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch profile');
+    const fetchProfile = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/api/users/profile/', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
+            });
 
-                const data = await response.json();
-                setProfile(data);
-                setFormData({
-                    phone_number: data.phone_number || '',
-                    date_of_birth: data.date_of_birth || '',
-                    location: data.location || '',
-                    address: data.address || '',
-                    profile_picture: null
-                });
-
-                if (data.profile_picture) {
-                    setPreviewImage(data.profile_picture);
-                }
-            } catch (error) {
-                console.error('Error fetching profile:', error);
-                navigate('/login');
-            } finally {
-                setLoading(false);
+            if (!response.ok) {
+                throw new Error('Failed to fetch profile');
             }
-        };
 
+            const data = await response.json();
+            setFormData({
+                phone_number: data.phone_number || '',
+                date_of_birth: data.date_of_birth || '',
+                location: data.location || '',
+                address: data.address || '',
+                profile_picture: null
+            });
+
+            if (data.profile_picture) {
+                setPreviewImage(data.profile_picture);
+            }
+        } catch (error) {
+            console.error('Error fetching profile:', error);
+            toast.error('Failed to load profile data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
         fetchProfile();
-    }, [navigate]);
+    }, [navigate, user]);
 
     const handleChange = (e) => {
         setFormData({
@@ -63,13 +66,13 @@ const Account = () => {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setFormData({
-                ...formData,
+            setFormData(prev => ({
+                ...prev,
                 profile_picture: file
-            });
+            }));
 
             const reader = new FileReader();
-            reader.onloadend = () => {
+            reader.onload = () => {
                 setPreviewImage(reader.result);
             };
             reader.readAsDataURL(file);
@@ -99,54 +102,74 @@ const Account = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to update profile');
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update profile');
             }
 
             const updatedProfile = await response.json();
-            setProfile(updatedProfile);
-            alert('Profile updated successfully!');
 
+            // Update the preview image with the new URL from backend
             if (updatedProfile.profile_picture) {
                 setPreviewImage(updatedProfile.profile_picture);
             }
+
+            toast.success('Profile updated successfully!');
         } catch (error) {
             console.error('Error updating profile:', error);
-            alert('Failed to update profile. Please try again.');
+            toast.error(error.message || 'Failed to update profile');
+            // Re-fetch the profile to restore previous state
+            fetchProfile();
         }
     };
 
     if (loading) {
-        return <div className="container mt-5">Loading profile...</div>;
+        return (
+            <div className="container py-5">
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading profile data...</p>
+                </div>
+            </div>
+        );
     }
 
     return (
         <div className="container py-4">
             <div className="row">
                 <div className="col-md-4 mb-4">
-                    <div className="card">
+                    <div className="card shadow-sm">
                         <div className="card-body text-center">
                             {previewImage ? (
                                 <img
                                     src={previewImage}
                                     alt="Profile"
-                                    className="rounded-circle mb-3"
+                                    className="rounded-circle mb-3 img-thumbnail"
                                     style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&background=random&size=150`;
+                                    }}
                                 />
                             ) : (
-                                <div className="rounded-circle bg-secondary mb-3 mx-auto d-flex align-items-center justify-content-center"
-                                    style={{ width: '150px', height: '150px' }}>
+                                <div
+                                    className="rounded-circle bg-primary mb-3 mx-auto d-flex align-items-center justify-content-center"
+                                    style={{ width: '150px', height: '150px' }}
+                                >
                                     <span className="text-white display-4">
-                                        {user.first_name.charAt(0).toUpperCase()}
+                                        {user?.first_name?.charAt(0).toUpperCase()}
+                                        {user?.last_name?.charAt(0).toUpperCase()}
                                     </span>
                                 </div>
                             )}
 
-                            <h4>{user.first_name} {user.last_name}</h4>
-                            <p className="text-muted mb-4">{user.email}</p>
+                            <h4 className="mb-1">{user?.first_name} {user?.last_name}</h4>
+                            <p className="text-muted mb-4">{user?.email}</p>
 
                             <div className="mb-3">
                                 <label className="btn btn-primary btn-sm">
-                                    Change Photo
+                                    <i className="fa fa-camera me-1"></i> Change Photo
                                     <input
                                         type="file"
                                         className="d-none"
@@ -160,7 +183,7 @@ const Account = () => {
                 </div>
 
                 <div className="col-md-8">
-                    <div className="card">
+                    <div className="card shadow-sm">
                         <div className="card-body">
                             <h3 className="card-title mb-4">Profile Settings</h3>
 
@@ -171,7 +194,7 @@ const Account = () => {
                                         <input
                                             type="text"
                                             className="form-control"
-                                            value={user.first_name}
+                                            value={user?.first_name || ''}
                                             readOnly
                                         />
                                     </div>
@@ -180,7 +203,7 @@ const Account = () => {
                                         <input
                                             type="text"
                                             className="form-control"
-                                            value={user.last_name}
+                                            value={user?.last_name || ''}
                                             readOnly
                                         />
                                     </div>
@@ -191,7 +214,7 @@ const Account = () => {
                                     <input
                                         type="email"
                                         className="form-control"
-                                        value={user.email}
+                                        value={user?.email || ''}
                                         readOnly
                                     />
                                 </div>
@@ -204,6 +227,7 @@ const Account = () => {
                                         name="phone_number"
                                         value={formData.phone_number}
                                         onChange={handleChange}
+                                        placeholder="Enter phone number"
                                     />
                                 </div>
 
@@ -219,14 +243,14 @@ const Account = () => {
                                 </div>
 
                                 <div className="mb-3">
-                                    <label className="form-label">Location</label>
+                                    <label className="form-label">Residential Area</label>
                                     <select
                                         className="form-select"
                                         name="location"
                                         value={formData.location}
                                         onChange={handleChange}
                                     >
-                                        <option value="">Select location</option>
+                                        <option value="">Select Residential Area</option>
                                         <option value="Lurambi">Lurambi</option>
                                         <option value="Koromatangi">Koromatangi</option>
                                         <option value="Mwiyala">Mwiyala</option>
@@ -246,12 +270,13 @@ const Account = () => {
                                         rows="3"
                                         value={formData.address}
                                         onChange={handleChange}
+                                        placeholder="Enter your full address"
                                     ></textarea>
                                 </div>
 
                                 <div className="d-flex justify-content-end">
                                     <button type="submit" className="btn btn-primary px-4">
-                                        Save Changes
+                                        <i className="fa fa-save me-2"></i> Save Changes
                                     </button>
                                 </div>
                             </form>

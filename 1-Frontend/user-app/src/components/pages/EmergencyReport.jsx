@@ -1,14 +1,20 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useContext } from "react";
+import EmergencyAPI from "../../api/emergencyAPI"; // Your emergency API instance
+import { AuthContext } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function EmergencyReport() {
+  const { logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    emergency_type: "",
+    emergency_type: "health",
     description: "",
-    severity: "",
+    severity: "high",
     latitude: null,
     longitude: null
   });
+
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,15 +44,28 @@ export default function EmergencyReport() {
     }
   };
 
+  const refreshToken = async () => {
+    try {
+      const refresh = localStorage.getItem("refresh_token");
+      const response = await UsersAPI.post("token/refresh/", { refresh });
+      localStorage.setItem("access_token", response.data.access);
+      return true;
+    } catch (error) {
+      logout();
+      navigate("/login");
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
     setIsSubmitting(true);
 
-    // Basic validation
-    if (!formData.emergency_type || !formData.description || !formData.severity) {
-      setError("Please fill all required fields");
+    // Validation
+    if (!formData.description.trim()) {
+      setError("Please provide a description of the emergency");
       setIsSubmitting(false);
       return;
     }
@@ -58,31 +77,39 @@ export default function EmergencyReport() {
     }
 
     try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/emergencies/report/',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      const response = await EmergencyAPI.post("report/", formData);
 
       if (response.status === 201) {
         setSuccess(true);
         setFormData({
-          emergency_type: "",
+          emergency_type: "health",
           description: "",
-          severity: "",
+          severity: "high",
           latitude: null,
           longitude: null
         });
+
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
+      if (err.response?.status === 401) {
+        // Token might be expired, try to refresh
+        const refreshed = await refreshToken();
+        if (refreshed) {
+          // Retry the request with new token
+          await handleSubmit(e);
+          return;
+        }
+      }
+
       if (err.response) {
-        setError(err.response.data?.detail ||
-                err.response.data?.message ||
-                "Failed to submit report");
+        setError(
+          err.response.data?.detail ||
+          err.response.data?.message ||
+          Object.values(err.response.data)?.[0]?.[0] || // Handle serializer errors
+          "Failed to submit report"
+        );
       } else if (err.request) {
         setError("No response from server. Please check your connection.");
       } else {
@@ -116,62 +143,73 @@ export default function EmergencyReport() {
                 type="button"
                 className="btn-close"
                 onClick={() => setError(null)}
+                aria-label="Close"
               ></button>
             </div>
           )}
 
           {success && (
             <div className="alert alert-success alert-dismissible fade show">
-              Report submitted successfully!
+              Emergency reported successfully! Help is on the way.
               <button
                 type="button"
                 className="btn-close"
                 onClick={() => setSuccess(false)}
+                aria-label="Close"
               ></button>
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
-            <select
-              className="form-control mb-4"
-              name="emergency_type"
-              value={formData.emergency_type}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select an Emergency Type</option>
-              <option value="health">Health Emergency</option>
-              <option value="security">Security Emergency</option>
-              <option value="fire">Fire Emergency</option>
-            </select>
-
-            <textarea
-              className="form-control mb-4"
-              rows="3"
-              placeholder="Describe the incident..."
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              required
-            ></textarea>
+            <div className="mb-4">
+              <label className="form-label fw-bold">Emergency Type</label>
+              <select
+                className="form-select"
+                name="emergency_type"
+                value={formData.emergency_type}
+                onChange={handleChange}
+                required
+              >
+                <option value="health">Health Emergency</option>
+                <option value="security">Security Emergency</option>
+                <option value="fire">Fire Emergency</option>
+              </select>
+            </div>
 
             <div className="mb-4">
-              <label className="fw-bold">Severity Level</label>
-              <div className="d-flex justify-content-between">
-                {['critical', 'high', 'low'].map(level => (
-                  <div className="form-check" key={level}>
+              <label className="form-label fw-bold">Description</label>
+              <textarea
+                className="form-control"
+                rows="3"
+                placeholder="Describe the emergency in detail..."
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label fw-bold">Severity Level</label>
+              <div className="d-flex flex-wrap gap-3">
+                {[
+                  { value: "critical", label: "Critical" },
+                  { value: "high", label: "High" },
+                  { value: "low", label: "Low" }
+                ].map((level) => (
+                  <div className="form-check" key={level.value}>
                     <input
                       className="form-check-input"
                       type="radio"
                       name="severity"
-                      id={level}
-                      value={level}
-                      checked={formData.severity === level}
+                      id={`severity-${level.value}`}
+                      value={level.value}
+                      checked={formData.severity === level.value}
                       onChange={handleChange}
                       required
                     />
-                    <label className="form-check-label" htmlFor={level}>
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    <label className="form-check-label" htmlFor={`severity-${level.value}`}>
+                      {level.label}
                     </label>
                   </div>
                 ))}
@@ -181,37 +219,40 @@ export default function EmergencyReport() {
             <div className="mb-4">
               <button
                 type="button"
-                className="btn btn-primary w-100"
+                className={`btn w-100 ${formData.latitude ? "btn-success" : "btn-primary"}`}
                 onClick={handleShareLocation}
                 disabled={isSubmitting}
               >
-                {formData.latitude && formData.longitude ? (
-                  "Location Captured ✓"
+                {formData.latitude ? (
+                  <><i className="bi bi-check-circle-fill me-2"></i>Location Captured</>
                 ) : (
-                  "Share My Location"
+                  <><i className="bi bi-geo-alt-fill me-2"></i>Share My Location</>
                 )}
               </button>
-              {formData.latitude && formData.longitude && (
-                <p className="mt-2 text-success">
+              {formData.latitude && (
+                <div className="mt-2 text-muted small">
+                  <i className="bi bi-info-circle-fill me-1"></i>
                   Coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
-                </p>
+                </div>
               )}
             </div>
 
-            <div className="text-center text-md-start mt-4 pt-2">
+            <div className="d-grid">
               <button
-                className="btn custom-btn px-5 btn-danger"
-                style={{ width: "100%" }}
+                className="btn btn-danger py-2"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !formData.latitude}
               >
                 {isSubmitting ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Submitting...
+                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Reporting Emergency...
                   </>
                 ) : (
-                  "Submit Report"
+                  <>
+                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                    Submit Emergency Report
+                  </>
                 )}
               </button>
             </div>

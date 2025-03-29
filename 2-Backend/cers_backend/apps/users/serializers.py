@@ -44,11 +44,17 @@ class LoginSerializer(serializers.Serializer):
         return user
 
 class ProfileSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
     email = serializers.EmailField(source='user.email', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     role = serializers.CharField(source='user.role', read_only=True)
     location = serializers.ChoiceField(choices=LOCATION_CHOICES, required=False)
+
+    def get_profile_picture(self, obj):
+        if obj.profile_picture:
+            return self.context['request'].build_absolute_uri(obj.profile_picture.url)
+        return None
 
     class Meta:
         model = UserProfile

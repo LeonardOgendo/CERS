@@ -23,13 +23,13 @@ class Emergency(models.Model):
     emergency_type = models.CharField(
         max_length=20,
         choices=EMERGENCY_TYPES,
-        default='health'  # Added default value
+        default='health'
     )
     description = models.TextField()
     severity = models.CharField(
         max_length=20,
         choices=SEVERITY_LEVELS,
-        default='high'  # Added default for consistency
+        default='high'
     )
     latitude = models.FloatField()
     longitude = models.FloatField()
