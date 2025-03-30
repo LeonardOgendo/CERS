@@ -19,6 +19,8 @@ export default function Contact(){
           </div>
 
           <input className='form-control mb-4' type='text' placeholder='Name' />
+          
+          <input className='form-control mb-4' type='text' placeholder='phone no.' />
 
           <input className='form-control mb-4' type='email' placeholder='Email address' />
 
