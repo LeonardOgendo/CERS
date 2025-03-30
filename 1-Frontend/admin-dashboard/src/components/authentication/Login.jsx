@@ -30,20 +30,23 @@ export default function Login() {
   // Client-side validation
   const validateForm = () => {
     let newErrors = {};
-
+  
+    const emailPattern = /^[a-z]{1}[a-z]+@cers\.ke$/; // e.g., emusk@cers.ke
+  
     if (!formData.identifier.trim()) {
       newErrors.identifier = "Email is required.";
-    } else if (!/\S+@\S+\.\S+/.test(formData.identifier)) {
-      newErrors.identifier = "Enter a valid email address.";
+    } else if (!emailPattern.test(formData.identifier)) {
+      newErrors.identifier = "Enter a valid email in 'first initial + last name' format (e.g., emusk@cers.ke).";
     }
-
+  
     if (!formData.password.trim()) {
       newErrors.password = "Password is required.";
     }
-
+  
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();

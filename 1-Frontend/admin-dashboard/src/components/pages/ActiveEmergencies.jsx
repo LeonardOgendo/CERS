@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
-import { viewActiveEmergencies } from "../../api/Emergencies";
+import { viewActiveEmergencies } from "../../api/emergencies";
+import { useEmergencyCount } from "../../context/CountsContext";
 
 const ActiveEmergencies = () => {
     const [emergencies, setEmergencies] = useState([]);
     const [error, setError] = useState(null);
+    const {setEmergencyCount} = useEmergencyCount();
 
     useEffect(() => {
         const fetchEmergencies = async () => {
             try {
                 const data = await viewActiveEmergencies();
+                
                 if (data.error) {
                     setError(data.error);
                 } else {
-                    setEmergencies(data);
+                    setEmergencies(data.results);
+                    setEmergencyCount(data.results.length);
                 }
             } catch (error) {
                 setError("An unexpected error occurred!");
@@ -27,7 +31,8 @@ const ActiveEmergencies = () => {
     }, []);
 
     const capitalize = (text) => {
-        return text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : "";
+        if (!text) return "";
+        return String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
     };
 
     // Limit text

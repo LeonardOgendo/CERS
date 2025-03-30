@@ -2,10 +2,12 @@ import Search from "../ui/Search";
 import UserIcon from '../../assets/logo_try.jpg';
 import { AuthContext } from "../../context/AuthContext";
 import { useContext, useState } from "react";
+import { useEmergencyCount } from "../../context/CountsContext";
 
 
 const TopNav = () => {
     const { user, logout } = useContext(AuthContext);
+    const { emergencyCount } = useEmergencyCount();
 
     const [dropdown, setDropdown] = useState("");
 
@@ -25,7 +27,7 @@ const TopNav = () => {
 
                 <div className="ico-container">         
                     <i className="fa fa-ambulance"></i>
-                    <span>5</span>
+                    <span>{emergencyCount}</span>
                 </div>
 
                 <div className="ico-container">

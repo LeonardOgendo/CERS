@@ -1,7 +1,10 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import AuthProvider from "./context/AuthContext";
 import { BrowserRouter } from "react-router-dom";
+
+import AuthProvider from "./context/AuthContext";
+import { CountsProvider } from "./context/CountsContext";
+
 
 const container = document.getElementById('root');
 const root = createRoot(container);
@@ -9,7 +12,9 @@ const root = createRoot(container);
 root.render(
     <BrowserRouter>
         <AuthProvider>
-            <App />
+            <CountsProvider>
+                <App />
+            </CountsProvider>
         </AuthProvider>
     </BrowserRouter>
 );

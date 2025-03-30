@@ -19,42 +19,48 @@ const Signup = () => {
 
   const isDisabled = formData.accountType === "";
 
-  // Handle input changes
   const handleChange = (e) => {
     setFormData((prevData) => ({
       ...prevData,
       [e.target.name]: e.target.value,
     }));
+
     setErrors((prevErrors) => ({
       ...prevErrors,
       [e.target.name]: "",
     })); // Clear errors on input
   };
 
-  // Validate form inputs before submission
+  // Validate inputs
   const validateForm = () => {
     let newErrors = {};
 
     if (!formData.accountType) newErrors.accountType = "Account type is required.";
     if (!formData.firstName.trim()) newErrors.firstName = "First name is required.";
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required.";
+
+    // Email validation
+    const emailPattern = /^[a-z]{1}[a-z]+@cers\.ke$/;
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required.";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Invalid email format.";
+    } else if (!emailPattern.test(formData.email)) {
+      newErrors.email = "Enter a valid email in 'first initial + last name' format (e.g., emusk@cers.ke).";
     }
+
     if (!formData.password) {
       newErrors.password = "Password is required.";
     } else if (formData.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters long.";
     }
+
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match.";
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Return true if no errors
-  };
+    return Object.keys(newErrors).length === 0;
+};
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -64,7 +70,7 @@ const Signup = () => {
 
     try {
       const response = await registerUser({
-        identifier: formData.email, // Using email as identifier
+        identifier: formData.email,
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
@@ -75,12 +81,12 @@ const Signup = () => {
       if (response.errors) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          ...response.errors, // Assuming API returns an object of field-specific errors
+          ...response.errors,
         }));
       } else if (response.error) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          general: response.error, // Handling general API error message
+          general: response.error,
         }));
       } else {
         setSuccess("Account created successfully");
