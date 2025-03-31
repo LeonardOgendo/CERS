@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Emergency
-from .serializers import EmergencySerializer
+from .models import Emergency, FlaggedArea
+from .serializers import EmergencySerializer, FlaggedAreaSerializer
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -35,7 +35,6 @@ class EmergencyListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Emergency.objects.all().order_by('-created_at')
 
-        # For authenticated users, filter by their reports by default
         if self.request.user.is_authenticated:
             queryset = queryset.filter(user=self.request.user)
 
@@ -73,4 +72,21 @@ class LiveLocationView(generics.GenericAPIView):
                 'latitude': latitude,
                 'longitude': longitude
             }
+        })
+
+
+class FlaggedAreasView(generics.ListAPIView):
+    serializer_class = FlaggedAreaSerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return FlaggedArea.objects.filter(is_active=True).order_by('-threat_level', '-last_incident')
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return Response({
+            'success': True,
+            'count': len(response.data),
+            'results': response.data
         })

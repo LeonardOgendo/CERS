@@ -3,7 +3,8 @@ from .views import (
     ReportEmergencyView,
     EmergencyListView,
     EmergencyDetailView,
-    LiveLocationView
+    LiveLocationView,
+    FlaggedAreasView
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path('list/', EmergencyListView.as_view(), name='emergency-list'),
     path('<int:id>/', EmergencyDetailView.as_view(), name='emergency-detail'),
     path('location/update/', LiveLocationView.as_view(), name='update-location'),
+    path('flagged-areas/', FlaggedAreasView.as_view(), name='flagged-areas'),
 ]

@@ -1,5 +1,6 @@
 import './App.css';
 import './styles.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer } from 'react-toastify';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Contact from './components/pages/Contact';
@@ -12,12 +13,22 @@ import Register from './components/authentication/Register';
 import Messages from './components/pages/Messages';
 import EmergencyReport from './components/pages/EmergencyReport';
 import IncidentHistory from './components/pages/IncidentHistory';
+import FlaggedAreas from './components/pages/FlaggedAreas';
 import ProtectedRoute from './components/authentication/ProtectedRoute';
 
 const App = () => {
   return (
     <div>
-      <ToastContainer position='top-right' autoClose={4000} hideProgressBar={true} />
+      <ToastContainer
+        position='top-right'
+        autoClose={4000}
+        hideProgressBar={true}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -34,6 +45,7 @@ const App = () => {
             <Route path='contact' element={<Contact />} />
             <Route path='emergency/report' element={<EmergencyReport />} />
             <Route path='emergency/list' element={<IncidentHistory />} />
+            <Route path='emergency/flagged-areas' element={<FlaggedAreas />} />
           </Route>
         </Route>
       </Routes>
