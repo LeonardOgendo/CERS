@@ -115,7 +115,7 @@ const FlaggedAreas = () => {
   const [error, setError] = useState(null);
   const [mapCenter, setMapCenter] = useState(KAKAMEGA_COORDINATES);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [showDistanceLines, setShowDistanceLines] = useState(true);
+  const [showDistanceLines, setShowDistanceLines] = useState(true); // Default to true
   const [activeTab, setActiveTab] = useState('map');
   const mapRef = useRef(null);
 
