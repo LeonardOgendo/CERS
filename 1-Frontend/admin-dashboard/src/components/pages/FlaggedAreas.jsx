@@ -28,11 +28,20 @@ import styled from 'styled-components';
 import haversine from 'haversine-distance';
 
 // Styled components
+const FullHeightContainer = styled(Container)`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 1rem;
+  overflow: hidden;
+`;
+
 const MapCard = styled(Card)`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  height: 600px;
+  flex-grow: 1;
+  min-height: 300px;
 
   .leaflet-container {
     height: 100%;
@@ -43,7 +52,6 @@ const MapCard = styled(Card)`
 const ControlPanel = styled(Card)`
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
 `;
 
 const StatusBadge = styled(Badge)`
@@ -66,12 +74,20 @@ const LoadingContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px;
+  height: 100%;
   flex-direction: column;
 
   .spinner {
     margin-bottom: 1rem;
   }
+`;
+
+const ContentWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 1rem;
+  overflow: hidden;
 `;
 
 // Kakamega coordinates
@@ -97,12 +113,22 @@ const THREAT_LEVELS = {
     color: '#ffc107',
     label: 'Low Threat',
     radius: 50
+  },
+  default: {
+    icon: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    color: '#6c757d',
+    label: 'Unknown Threat',
+    radius: 30
   }
 };
 
-const createCustomIcon = (threatLevel) => {
+const createCustomIcon = (threatLevel = 'default') => {
+  const level = threatLevel?.toLowerCase() in THREAT_LEVELS
+    ? threatLevel.toLowerCase()
+    : 'default';
+
   return new L.Icon({
-    iconUrl: THREAT_LEVELS[threatLevel]?.icon || THREAT_LEVELS.low.icon,
+    iconUrl: THREAT_LEVELS[level].icon,
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
@@ -115,7 +141,7 @@ const FlaggedAreas = () => {
   const [error, setError] = useState(null);
   const [mapCenter, setMapCenter] = useState(KAKAMEGA_COORDINATES);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [showDistanceLines, setShowDistanceLines] = useState(true); // Default to true
+  const [showDistanceLines, setShowDistanceLines] = useState(true);
   const [activeTab, setActiveTab] = useState('map');
   const mapRef = useRef(null);
 
@@ -139,7 +165,9 @@ const FlaggedAreas = () => {
       }
 
       const data = await response.json();
-      const areas = data.results?.results || data.results || data || [];
+      const areas = Array.isArray(data)
+        ? data
+        : data.results?.results || data.results || [];
 
       if (!Array.isArray(areas)) {
         throw new Error('Invalid data format');
@@ -273,12 +301,12 @@ const FlaggedAreas = () => {
         </Marker>
 
         {flaggedAreas.map((area, index) => {
-          const threatLevel = area.threat_level?.toLowerCase() || 'low';
-          const threatConfig = THREAT_LEVELS[threatLevel] || THREAT_LEVELS.low;
+          const threatLevel = area.threat_level?.toLowerCase() || 'default';
+          const threatConfig = THREAT_LEVELS[threatLevel] || THREAT_LEVELS.default;
           const areaLocation = [area.latitude, area.longitude];
 
           return (
-            <React.Fragment key={`${area.id}-${index}` || `${area.latitude}-${area.longitude}-${index}`}>
+            <React.Fragment key={`${area.id || index}-${area.latitude}-${area.longitude}`}>
               {showDistanceLines && (
                 <Polyline
                   positions={[KAKAMEGA_COORDINATES, areaLocation]}
@@ -341,7 +369,7 @@ const FlaggedAreas = () => {
   );
 
   const renderCoordinatesTable = () => (
-    <Card className="mt-3">
+    <Card className="h-100">
       <Card.Header className="d-flex justify-content-between align-items-center">
         <h5 className="mb-0">Flagged Areas Records</h5>
         <Button
@@ -352,7 +380,7 @@ const FlaggedAreas = () => {
           <FiNavigation className="me-1" /> Center to Kakamega
         </Button>
       </Card.Header>
-      <Card.Body>
+      <Card.Body style={{ overflow: 'auto' }}>
         <div className="table-responsive">
           <Table striped bordered hover>
             <thead>
@@ -366,33 +394,38 @@ const FlaggedAreas = () => {
               </tr>
             </thead>
             <tbody>
-              {flaggedAreas.map((area, index) => (
-                <tr key={index}>
-                  <td>{area.title || 'N/A'}</td>
-                  <td>{area.latitude}, {area.longitude}</td>
-                  <td>
-                    <Badge
-                      bg={
-                        area.threat_level?.toLowerCase() === 'high' ? 'danger' :
-                        area.threat_level?.toLowerCase() === 'medium' ? 'warning' : 'secondary'
-                      }
-                    >
-                      {THREAT_LEVELS[area.threat_level?.toLowerCase()]?.label || 'Low Threat'}
-                    </Badge>
-                  </td>
-                  <td>{area.distance}</td>
-                  <td>{area.last_incident ? new Date(area.last_incident).toLocaleString() : 'N/A'}</td>
-                  <td>
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => handleCenterMap([area.latitude, area.longitude])}
-                    >
-                      <FiMapPin /> View
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {flaggedAreas.map((area, index) => {
+                const threatLevel = area.threat_level?.toLowerCase() || 'default';
+                const threatConfig = THREAT_LEVELS[threatLevel] || THREAT_LEVELS.default;
+
+                return (
+                  <tr key={index}>
+                    <td>{area.title || 'N/A'}</td>
+                    <td>{area.latitude}, {area.longitude}</td>
+                    <td>
+                      <Badge
+                        bg={
+                          threatLevel === 'high' ? 'danger' :
+                          threatLevel === 'medium' ? 'warning' : 'secondary'
+                        }
+                      >
+                        {threatConfig.label}
+                      </Badge>
+                    </td>
+                    <td>{area.distance}</td>
+                    <td>{area.last_incident ? new Date(area.last_incident).toLocaleString() : 'N/A'}</td>
+                    <td>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleCenterMap([area.latitude, area.longitude])}
+                      >
+                        <FiMapPin /> View
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
         </div>
@@ -401,8 +434,8 @@ const FlaggedAreas = () => {
   );
 
   return (
-    <Container className="py-4">
-      <Row className="mb-4">
+    <FullHeightContainer fluid>
+      <Row className="mb-3">
         <Col>
           <h2 className="fw-bold">Security Flagged Areas</h2>
           <p className="text-muted">
@@ -432,10 +465,12 @@ const FlaggedAreas = () => {
         </Card.Body>
       </ControlPanel>
 
-      {loading ? renderLoadingState() :
-       error ? renderErrorState() :
-       activeTab === 'map' ? renderMap() : renderCoordinatesTable()}
-    </Container>
+      <ContentWrapper>
+        {loading ? renderLoadingState() :
+         error ? renderErrorState() :
+         activeTab === 'map' ? renderMap() : renderCoordinatesTable()}
+      </ContentWrapper>
+    </FullHeightContainer>
   );
 };
 

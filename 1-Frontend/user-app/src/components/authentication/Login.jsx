@@ -25,7 +25,7 @@ const Login = () => {
 
   const validateForm = () => {
     let newErrors = {};
-    
+
     if (!formData.identifier.trim()) {
       newErrors.identifier = "Student ID / Staff ID is required";
     } else {
@@ -73,8 +73,8 @@ const Login = () => {
   };
 
   return (
-    <div className="container-fluid login d-flex">
-      <div className="row">
+    <div className="container-fluid login d-flex justify-content-end" style={{ paddingRight: "10%" }}>
+      <div className="row w-100">
         <div className="col-md-6">
           <img
             src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
