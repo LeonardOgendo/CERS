@@ -44,7 +44,7 @@ const TopNav = () => {
                             <p className="profile-box me-1">
                                 {user.first_name.charAt(0).toUpperCase()}
                             </p>
-                            <div className="mt-2">
+                            <div>
                                 <span className="me-2">Hi, {user.first_name}</span>
                                 <i className={`fa ${dropdown === "profile" ? "fa-chevron-down" : "fa-chevron-right"}`}></i>
                             </div>

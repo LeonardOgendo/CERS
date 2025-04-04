@@ -5,33 +5,21 @@ export default function Content() {
   const navigate = useNavigate();
   const navItems = [
     { title: "Report Emergency", path: "emergency/report", Icon: FaExclamationTriangle, color: "#ff4444" },
-    { title: "Track Response Status", path: "emergency/status", Icon: FaSearchLocation, color: "#4285f4" },
-    { title: "View Flagged Areas", path: "emergency/flagged-areas", Icon: FaMapMarkedAlt, color: "#ffbb33" },
-    { title: "Incident History", path: "emergency/list", Icon: FaHistory, color: "#aa66cc" }
+    { title: "Track Response Status", path: "emergency/status", Icon: FaSearchLocation, color: "#008080" },
+    { title: "View Flagged Areas", path: "emergency/flagged-areas", Icon: FaMapMarkedAlt, color: "#FF8C00" },
+    { title: "Incident History", path: "emergency/list", Icon: FaHistory, color: "#4169E1" }
   ];
 
   return (
-    <div style={{ padding: "1rem", maxWidth: "1200px", margin: "0 auto" }}>
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-        gap: "1rem",
-        alignItems: "stretch"
-      }}>
+    
+    <div className="mt-2">
+      <div className="cards-container d-flex">
         {navItems.map(({ title, path, Icon, color }, index) => (
           <div
             key={index}
+            className="cards col-3"
             style={{
-              background: "white",
-              borderRadius: "8px",
-              padding: "1rem",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              cursor: "pointer",
-              borderLeft: `4px solid ${color}`,
-              transition: "all 0.2s ease",
-              display: "flex",
-              flexDirection: "column",
-              height: "100%"
+              borderLeft: `3px solid ${color}`
             }}
             onClick={() => navigate(path)}
             onMouseEnter={e => {

@@ -82,7 +82,9 @@
         }
     
         & span {
-            margin-left: 2px;
+            margin-left: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
         }
     
         & i {
@@ -130,6 +132,23 @@
         margin: 0 auto;
         border: 1px solid #919191;
     }
+}
+
+.cards-container {
+    max-width: 96.5%;
+}
+.cards {
+    background: white;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 8px;
+    margin-right: 9px;
 }
 
 /*-- Authentication: Login --*/
