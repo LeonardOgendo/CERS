@@ -44,12 +44,11 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # custom apps
+    "apps.core",
     "apps.users",
     "apps.emergencies",
     "apps.incidents",
     "apps.notifications",
-    "apps.admin_dashboard",
-    "apps.user_dashboard",
     'django_filters',
 ]
 

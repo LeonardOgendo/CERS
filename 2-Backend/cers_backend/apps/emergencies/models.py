@@ -19,7 +19,6 @@ class Emergency(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
     )
     emergency_type = models.CharField(
         max_length=20,

@@ -7,11 +7,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/users/", include("apps.users.urls")),
     path('api/emergencies/', include('apps.emergencies.urls')),
-    path("api/admin-dashboard/", include("apps.admin_dashboard.urls")),
-    path('api/user-dashboard/', include('apps.user_dashboard.urls')),
     path("api/incidents/", include("apps.incidents.urls")),
 ]
 
-# This is only for development - remove in production
+# For Development only
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
