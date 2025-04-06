@@ -7,8 +7,15 @@ from apps.emergencies.models import Emergency
 
 class Responder(models.Model):
     STATUS_CHOICES = [
-        ('Available', 'Available'),
-        ('Engaged', 'Engaged'),
+        ('available', 'Available'),
+        ('engaged', 'Engaged'),
+    ]
+
+    EMERGENCY_CATEGORY_CHOICES = [
+        ('unassigned', 'Unassigned'),
+        ('health', 'Health'),
+        ('security', 'Security'),
+        ('fire', 'Fire')
     ]
 
     user = models.OneToOneField(
@@ -19,15 +26,21 @@ class Responder(models.Model):
     responder_status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        default='Available'
+        default='available'
     )
-    assigned_emergency = models.ForeignKey(
+    emergency_category = models.CharField(
+        max_length=10,
+        choices=EMERGENCY_CATEGORY_CHOICES,
+        default='unassigned'
+    )
+    assigned_emergencies = models.ForeignKey(
         Emergency,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='assigned_responders'
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):

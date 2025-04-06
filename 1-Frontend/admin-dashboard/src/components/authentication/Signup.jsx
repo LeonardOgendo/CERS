@@ -31,6 +31,25 @@ const Signup = () => {
     })); // Clear errors on input
   };
 
+  // Password Strength Validation
+  const validatePasswordStrength = (password) => {
+    const minLength = 8;
+    const regexUpperCase = /[A-Z]/;
+    const regexLowerCase = /[a-z]/;
+    const regexNumber = /\d/;
+    const regexSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
+
+    const errors = [];
+
+    if (password.length < minLength) errors.push("Password must be at least 8 characters.");
+    if (!regexUpperCase.test(password)) errors.push("Password must contain at least one uppercase letter.");
+    if (!regexLowerCase.test(password)) errors.push("Password must contain at least one lowercase letter.");
+    if (!regexNumber.test(password)) errors.push("Password must contain at least one number.");
+    if (!regexSpecialChar.test(password)) errors.push("Password must contain at least one special character.");
+
+    return errors;
+  };
+
   // Validate inputs
   const validateForm = () => {
     let newErrors = {};
@@ -50,8 +69,11 @@ const Signup = () => {
 
     if (!formData.password) {
       newErrors.password = "Password is required.";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters long.";
+    } else {
+      const passwordErrors = validatePasswordStrength(formData.password);
+      if (passwordErrors.length > 0) {
+        newErrors.password = passwordErrors.join(" ");
+      }
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -60,7 +82,7 @@ const Signup = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-};
+  };
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -90,7 +112,7 @@ const Signup = () => {
         }));
       } else {
         setSuccess("Account created successfully");
-        toast.success("Account created succesfully! You can now log in.")
+        toast.success("Account created successfully! You can now log in.");
         setTimeout(() => navigate("/"), 2000);
       }
     } catch (error) {
@@ -118,7 +140,7 @@ const Signup = () => {
 
               {success && <p className="text-success">{success}</p>}
               {errors.general && <p className="text-danger">{errors.general}</p>}
-
+             
               <form className="custom-signup-block w-100" onSubmit={handleSubmit}>
                 <div className="mb-4">
                   <label htmlFor="accountType" className="form-label">Account Type</label>
