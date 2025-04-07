@@ -17,7 +17,9 @@ import FlaggedAreas from './components/pages/FlaggedAreas';
 import FlagArea from './components/pages/FlagArea';
 import Notifications from './components/pages/Notifications';
 import Messages from './components/pages/Messages';
+import ResponderAssignmentDetail from './components/pages/ResponderAssignmentDetail';
 import ResponderDetail from './components/pages/ResponderDetail';
+
 import ProtectedRoute from './components/authentication/ProtectedRoute';
 
 const App = () => {
@@ -38,8 +40,9 @@ const App = () => {
                         <Route path="emergencies/active" element={<ActiveEmergencies />} />
                         <Route path="emergencies/resolved" element={<ResolvedEmergencies />} />
                         <Route path="responders/view" element={<ViewResponders />} />
+                        <Route path='responders/view/responder/detailview/:id' element={<ResponderDetail />} />
                         <Route path="responders/assign" element={<AssignResponders />} />
-                        <Route path="responders/assign/responder/:id" element={<ResponderDetail />} />
+                        <Route path="responders/assign/responder/:id" element={<ResponderAssignmentDetail />} />
                         <Route path="users/approve" element={<ApproveAccounts />} />
                         <Route path="users/remove" element={<RemoveAccounts />} />
                         <Route path="flagged-areas" element={<FlaggedAreas />} />

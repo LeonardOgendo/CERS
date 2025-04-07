@@ -3,7 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from apps.emergencies.models import Emergency
+
 
 class Responder(models.Model):
     STATUS_CHOICES = [
@@ -31,16 +31,9 @@ class Responder(models.Model):
     emergency_category = models.CharField(
         max_length=10,
         choices=EMERGENCY_CATEGORY_CHOICES,
-        default='unassigned'
+        default='unassigned',
+        blank=True
     )
-    assigned_emergencies = models.ForeignKey(
-        Emergency,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='assigned_responders'
-    )
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):

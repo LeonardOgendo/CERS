@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Emergency, FlaggedArea
 from .serializers import EmergencySerializer, FlaggedAreaSerializer
+from apps.core.models import Responder
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -18,7 +19,25 @@ class ReportEmergencyView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Save emergency with the reporting user
+        emergency = serializer.save(user=self.request.user)
+
+        # Try to find a matching available responder
+        responder = Responder.objects.filter(
+            emergency_category=emergency.emergency_type,
+            responder_status='available'
+        ).first()
+
+        if responder:
+            # Assign responder & update emergency status
+            emergency.responder = responder
+            emergency.save()
+
+            # Update responder status
+            responder.responder_status = 'engaged'
+            responder.save()
+        
+        return emergency
 
 
 class EmergencyListView(generics.ListAPIView):

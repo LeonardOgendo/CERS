@@ -39,11 +39,19 @@ class Emergency(models.Model):
         default='reported',
         choices=[
             ('reported', 'Reported'),
-            ('in_progress', 'In Progress'),
+            ('acknowledged', 'Acknowledged'),
             ('resolved', 'Resolved'),
         ]
     )
 
+    responder = models.ForeignKey(
+        'core.Responder',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='emergencies'
+    )
+    
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.emergency_type == 'security':
