@@ -41,7 +41,18 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid credentials, please try again')
         if not user.is_active:
             raise serializers.ValidationError('Your account is inactive. Contact support.')
-        return user
+        
+        
+        # Fetch responder_id if user is a responder
+        responder_id = None
+        if user.role == 'responder':
+            responder_profile = user.responder_profile
+            responder_id = responder_profile.id
+        
+        return {
+            'user': user,
+            'responder_id': responder_id
+        }
 
 class ProfileSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()

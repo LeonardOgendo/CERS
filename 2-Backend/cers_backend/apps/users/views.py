@@ -32,8 +32,12 @@ class LoginUserView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            user = serializer.validated_data
+            user = serializer.validated_data['user']
+            responder_id = serializer.validated_data['responder_id']
+
             refresh = RefreshToken.for_user(user)
+
+           
             return Response({
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
@@ -44,6 +48,7 @@ class LoginUserView(APIView):
                     "last_name": user.last_name,
                     "email": user.email,
                     "role": user.role,
+                    "responder_id": responder_id if responder_id else None,
                 },
             })
         return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

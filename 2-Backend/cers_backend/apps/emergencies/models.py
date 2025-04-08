@@ -40,7 +40,9 @@ class Emergency(models.Model):
         choices=[
             ('reported', 'Reported'),
             ('acknowledged', 'Acknowledged'),
-            ('resolved', 'Resolved'),
+            ('en_route', 'En Route'),
+            ('on_site', 'On_Site'),
+            ('resolved', 'Resolved')
         ]
     )
 
