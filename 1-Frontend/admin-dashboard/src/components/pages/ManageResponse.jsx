@@ -70,10 +70,10 @@ const ManageResponse = () => {
                         <>
                             <div className="d-flex">
                                 <div>
-                                    <p>User :</p>
-                                    <p>Emergency Type :</p>
-                                    <p>Severity :</p>
-                                    <p>Status :</p>
+                                    <p className="fw-medium">User :</p>
+                                    <p className="fw-medium">Emergency Type :</p>
+                                    <p className="fw-medium">Severity :</p>
+                                    <p className="fw-medium">Status :</p>
                                 </div>
                                 <div className="ms-3">
                                     <p>{emerg.user.first_name} {emerg.user.last_name}</p>
@@ -82,7 +82,7 @@ const ManageResponse = () => {
                                     <p>{capitalize(emerg.status)}</p>
                                 </div>
                             </div>
-                            <p>Description :</p>
+                            <p className="fw-medium">Description :</p>
                             <p style={{ fontSize: '0.95rem' }} className="border py-3 rounded-2 px-2">{emerg.description}</p>
                         
                         </>
