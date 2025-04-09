@@ -12,7 +12,6 @@ const MyStatus = () => {
 
     const id = user?.responder_id;
     
-
     // For now
     const responseHistory = [];
 

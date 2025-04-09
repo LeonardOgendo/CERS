@@ -8,7 +8,7 @@ class Emergency(models.Model):
         ('security', 'Security Emergency'),
         ('fire', 'Fire Emergency'),
     ]
-
+    
     SEVERITY_LEVELS = [
         ('critical', 'Critical'),
         ('high', 'High'),

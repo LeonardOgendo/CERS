@@ -422,3 +422,8 @@ input:focus {
 .detailview-wrapper {
     width: 50%;
 }
+
+.p2 {
+    float: inline-end;
+}
+

@@ -20,6 +20,7 @@ import Messages from './components/pages/Messages';
 import ResponderAssignmentDetail from './components/pages/ResponderAssignmentDetail';
 import ResponderDetail from './components/pages/ResponderDetail';
 import MyStatus from './components/pages/MyStatus';
+import ManageResponse from './components/pages/ManageResponse';
 
 import ProtectedRoute from './components/authentication/ProtectedRoute';
 
@@ -51,6 +52,7 @@ const App = () => {
                         <Route path="notifications/view" element={<Notifications />} />
                         <Route path="messages" element={<Messages />} />
                         <Route path="actions/mystatus/view" element={<MyStatus />} />
+                        <Route path="actions/manage/response" element={<ManageResponse />} />
                     </Route>
                 </Route>
             </Routes>

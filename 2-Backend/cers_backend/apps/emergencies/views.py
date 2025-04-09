@@ -60,6 +60,7 @@ class EmergencyListView(generics.ListAPIView):
         return queryset
 
 
+# To Handle Incident History for user-app(React Frontend)
 class EmergencyDetailView(generics.RetrieveAPIView):
     queryset = Emergency.objects.all()
     serializer_class = EmergencySerializer
@@ -70,6 +71,17 @@ class EmergencyDetailView(generics.RetrieveAPIView):
         if self.request.user.is_authenticated:
             return Emergency.objects.filter(user=self.request.user)
         return Emergency.objects.none()
+
+
+# Emergency DetailView for Responders or admin
+
+class EmergencyByResponderView(generics.ListAPIView):
+    serializer_class = EmergencySerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        responder_id = self.kwargs.get('responder_id')
+        return Emergency.objects.filter(responder_id=responder_id)
 
 
 class LiveLocationView(generics.GenericAPIView):

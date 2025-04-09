@@ -41,7 +41,7 @@ const SideNav = () => {
                                 {openDropdown === "actions" && (
                                     <ul className='dropdowns mt-2'>
                                         <li><Link to="actions/mystatus/view" className='text-decoration-none'>My Status</Link></li>
-                                        <li><Link to="actions/response/manage" className='text-decoration-none'>Manage Response</Link></li>
+                                        <li><Link to="actions/manage/response" className='text-decoration-none'>Manage Response</Link></li>
                                         <li><Link to="actions/request-leave" className='text-decoration-none'>Request Leave</Link></li>
                                     </ul>
                                 )}
