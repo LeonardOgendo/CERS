@@ -17,6 +17,11 @@ import FlaggedAreas from './components/pages/FlaggedAreas';
 import FlagArea from './components/pages/FlagArea';
 import Notifications from './components/pages/Notifications';
 import Messages from './components/pages/Messages';
+import ResponderAssignmentDetail from './components/pages/ResponderAssignmentDetail';
+import ResponderDetail from './components/pages/ResponderDetail';
+import MyStatus from './components/pages/MyStatus';
+import ManageResponse from './components/pages/ManageResponse';
+
 import ProtectedRoute from './components/authentication/ProtectedRoute';
 
 const App = () => {
@@ -37,13 +42,17 @@ const App = () => {
                         <Route path="emergencies/active" element={<ActiveEmergencies />} />
                         <Route path="emergencies/resolved" element={<ResolvedEmergencies />} />
                         <Route path="responders/view" element={<ViewResponders />} />
+                        <Route path='responders/view/responder/detailview/:id' element={<ResponderDetail />} />
                         <Route path="responders/assign" element={<AssignResponders />} />
+                        <Route path="responders/assign/responder/:id" element={<ResponderAssignmentDetail />} />
                         <Route path="users/approve" element={<ApproveAccounts />} />
                         <Route path="users/remove" element={<RemoveAccounts />} />
                         <Route path="flagged-areas" element={<FlaggedAreas />} />
                         <Route path="flag-area" element={<FlagArea />} />
                         <Route path="notifications/view" element={<Notifications />} />
                         <Route path="messages" element={<Messages />} />
+                        <Route path="actions/mystatus/view" element={<MyStatus />} />
+                        <Route path="actions/manage/response" element={<ManageResponse />} />
                     </Route>
                 </Route>
             </Routes>

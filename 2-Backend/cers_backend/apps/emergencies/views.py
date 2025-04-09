@@ -5,6 +5,7 @@ from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Emergency, FlaggedArea
 from .serializers import EmergencySerializer, FlaggedAreaSerializer
+from apps.core.models import Responder
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -18,7 +19,25 @@ class ReportEmergencyView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Save emergency with the reporting user
+        emergency = serializer.save(user=self.request.user)
+
+        # Try to find a matching available responder
+        responder = Responder.objects.filter(
+            emergency_category=emergency.emergency_type,
+            responder_status='available'
+        ).first()
+
+        if responder:
+            # Assign responder & update emergency status
+            emergency.responder = responder
+            emergency.save()
+
+            # Update responder status
+            responder.responder_status = 'engaged'
+            responder.save()
+        
+        return emergency
 
 
 class EmergencyListView(generics.ListAPIView):
@@ -41,6 +60,7 @@ class EmergencyListView(generics.ListAPIView):
         return queryset
 
 
+# To Handle Incident History for user-app(React Frontend)
 class EmergencyDetailView(generics.RetrieveAPIView):
     queryset = Emergency.objects.all()
     serializer_class = EmergencySerializer
@@ -51,6 +71,17 @@ class EmergencyDetailView(generics.RetrieveAPIView):
         if self.request.user.is_authenticated:
             return Emergency.objects.filter(user=self.request.user)
         return Emergency.objects.none()
+
+
+# Emergency DetailView for Responders or admin
+
+class EmergencyByResponderView(generics.ListAPIView):
+    serializer_class = EmergencySerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        responder_id = self.kwargs.get('responder_id')
+        return Emergency.objects.filter(responder_id=responder_id)
 
 
 class LiveLocationView(generics.GenericAPIView):

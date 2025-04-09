@@ -8,7 +8,7 @@ class Emergency(models.Model):
         ('security', 'Security Emergency'),
         ('fire', 'Fire Emergency'),
     ]
-
+    
     SEVERITY_LEVELS = [
         ('critical', 'Critical'),
         ('high', 'High'),
@@ -19,7 +19,6 @@ class Emergency(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
     )
     emergency_type = models.CharField(
         max_length=20,
@@ -40,11 +39,21 @@ class Emergency(models.Model):
         default='reported',
         choices=[
             ('reported', 'Reported'),
-            ('in_progress', 'In Progress'),
-            ('resolved', 'Resolved'),
+            ('acknowledged', 'Acknowledged'),
+            ('en_route', 'En Route'),
+            ('on_site', 'On_Site'),
+            ('resolved', 'Resolved')
         ]
     )
 
+    responder = models.ForeignKey(
+        'core.Responder',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='emergencies'
+    )
+    
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.emergency_type == 'security':

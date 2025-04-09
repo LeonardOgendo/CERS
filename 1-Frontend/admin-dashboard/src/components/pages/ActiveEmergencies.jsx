@@ -60,16 +60,12 @@ const ActiveEmergencies = () => {
                         </thead>
                         <tbody>
                             {emergencies.map((emergency, index) => {
-                            
+                                console.log(emergency);
                                 return (
                                     <tr key={index}>
                                         <td className="fw-bold">{index + 1}</td>
                                         <td>
-                                            {emergency.user ? (
-                                                capitalize(emergency.user)
-                                            ) : (
-                                                <em className="text-muted">Anonymous User</em>
-                                            )}
+                                           {emergency.user.first_name} {emergency.user.last_name}
                                         </td>
                                         <td>{capitalize(emergency.emergency_type)}</td>
                                         <td>{truncateText(capitalize(emergency.description))}</td>

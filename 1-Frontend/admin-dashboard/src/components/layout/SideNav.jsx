@@ -28,10 +28,27 @@ const SideNav = () => {
                             <ul className='dropdowns mt-2'>
                                 <li><Link to="emergencies/active" className='text-decoration-none'>Active Emergencies</Link></li>
                                 <li><Link to="emergencies/resolved" className='text-decoration-none'>Resolved Emergencies</Link></li>
-                                {role === 'responder' && <li><Link to="emergencies/assignments" className='text-decoration-none'>New Assignments</Link></li>}
+                                
                             </ul>
                         )}
                     </li>
+                    
+                    {role === "responder" && (
+                        <>
+                            <li className='main-links' onClick={() => toggleDropdown("actions")}>
+                                <i className='fa fa-check-square-o ico'></i>Actions <i className="fa fa-chevron-right ico-more"></i>
+
+                                {openDropdown === "actions" && (
+                                    <ul className='dropdowns mt-2'>
+                                        <li><Link to="actions/mystatus/view" className='text-decoration-none'>My Status</Link></li>
+                                        <li><Link to="actions/manage/response" className='text-decoration-none'>Manage Response</Link></li>
+                                        <li><Link to="actions/request-leave" className='text-decoration-none'>Request Leave</Link></li>
+                                    </ul>
+                                )}
+                            </li>
+                        </>
+                    )}
+
                     {role === "admin" && (
                         <>
                             <li className='main-links' onClick={() => toggleDropdown("responders")}>
