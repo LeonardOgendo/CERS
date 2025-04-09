@@ -5,13 +5,13 @@ import { useEmergencyCount } from "../../context/CountsContext";
 const ActiveEmergencies = () => {
     const [emergencies, setEmergencies] = useState([]);
     const [error, setError] = useState(null);
-    const {setEmergencyCount} = useEmergencyCount();
+    const { setEmergencyCount } = useEmergencyCount();
 
     useEffect(() => {
         const fetchEmergencies = async () => {
             try {
                 const data = await viewActiveEmergencies();
-                
+
                 if (data.error) {
                     setError(data.error);
                 } else {
@@ -25,7 +25,6 @@ const ActiveEmergencies = () => {
 
         fetchEmergencies();
 
-        // Auto-refresh
         const interval = setInterval(fetchEmergencies, 5000);
         return () => clearInterval(interval);
     }, []);
@@ -35,7 +34,6 @@ const ActiveEmergencies = () => {
         return String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
     };
 
-    // Limit text
     const truncateText = (text, length = 50) => {
         return text.length > length ? text.substring(0, length) + "..." : text;
     };
@@ -43,8 +41,11 @@ const ActiveEmergencies = () => {
     return (
         <div className="container mt-2">
             <h3 className="mb-4">Active Emergencies</h3>
+
             {error ? (
                 <p className="text-danger text-center">{error}</p>
+            ) : emergencies.length === 0 ? (
+                <p className="text-center mt-5">No Active Emergencies</p>
             ) : (
                 <div className="shadow-lg p-3 mb-5 bg-white rounded">
                     <table className="table table-hover">
@@ -59,37 +60,34 @@ const ActiveEmergencies = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {emergencies.map((emergency, index) => {
-                                console.log(emergency);
-                                return (
-                                    <tr key={index}>
-                                        <td className="fw-bold">{index + 1}</td>
-                                        <td>
-                                           {emergency.user.first_name} {emergency.user.last_name}
-                                        </td>
-                                        <td>{capitalize(emergency.emergency_type)}</td>
-                                        <td>{truncateText(capitalize(emergency.description))}</td>
-                                        <td>
-                                            <span className={`badge ${
-                                                emergency.severity === "critical" ? "bg-danger" :
-                                                emergency.severity === "high" ? "bg-warning text-dark" :
-                                                "bg-success"
-                                            }`}>
-                                                {capitalize(emergency.severity)}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span className={`badge ${
-                                                emergency.status === "reported" ? "bg-info text-dark" :
-                                                emergency.status === "resolved" ? "bg-success" :
-                                                "bg-secondary"
-                                            }`}>
-                                                {capitalize(emergency.status)}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            {emergencies.map((emergency, index) => (
+                                <tr key={index}>
+                                    <td className="fw-bold">{index + 1}</td>
+                                    <td>
+                                        {emergency.user.first_name} {emergency.user.last_name}
+                                    </td>
+                                    <td>{capitalize(emergency.emergency_type)}</td>
+                                    <td>{truncateText(capitalize(emergency.description))}</td>
+                                    <td>
+                                        <span className={`badge ${
+                                            emergency.severity === "critical" ? "bg-danger" :
+                                            emergency.severity === "high" ? "bg-warning text-dark" :
+                                            "bg-success"
+                                        }`}>
+                                            {capitalize(emergency.severity)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span className={`badge ${
+                                            emergency.status === "reported" ? "bg-info text-dark" :
+                                            emergency.status === "resolved" ? "bg-success" :
+                                            "bg-secondary"
+                                        }`}>
+                                            {capitalize(emergency.status)}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

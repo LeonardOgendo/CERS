@@ -34,7 +34,10 @@ const AssignResponders = () => {
             <h3 className="mb-4">Responders</h3>
             {error ? (
                 <p className="text-danger text-center">{error}</p>
-            ) : (
+            ) : responders.length === 0 ? (
+                <p className="text-center mt-5">No Available Responders</p>
+            ) :
+            (
                 <div className="shadow-lg p-3 mb-5 bg-white rounded">
                     <table className="table table-hover">
                         <thead className="bg-dark text-white">

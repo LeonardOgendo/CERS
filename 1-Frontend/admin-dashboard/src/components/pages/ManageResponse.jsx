@@ -65,29 +65,35 @@ const ManageResponse = () => {
         
             <div className="border rounded p-4 w-50">
                 <h5 className="text-primary mb-4">Emergency Details</h5>
-                <div>
-                    {emergency.map(emerg => (
-                        <>
-                            <div className="d-flex">
-                                <div>
-                                    <p className="fw-medium">User :</p>
-                                    <p className="fw-medium">Emergency Type :</p>
-                                    <p className="fw-medium">Severity :</p>
-                                    <p className="fw-medium">Status :</p>
+                
+                {emergency.length === 0 ? (
+                    <p className="mt-5">No Assigned Emergency</p>
+                ) : (
+                    <div>
+                        {emergency.map(emerg => (
+                            <>
+                                <div className="d-flex">
+                                    <div>
+                                        <p className="fw-medium">User :</p>
+                                        <p className="fw-medium">Emergency Type :</p>
+                                        <p className="fw-medium">Severity :</p>
+                                        <p className="fw-medium">Status :</p>
+                                    </div>
+                                    <div className="ms-3">
+                                        <p>{emerg.user.first_name} {emerg.user.last_name}</p>
+                                        <p>{capitalize(emerg.emergency_type)}</p>
+                                        <p>{capitalize(emerg.severity)}</p>
+                                        <p>{capitalize(emerg.status)}</p>
+                                    </div>
                                 </div>
-                                <div className="ms-3">
-                                    <p>{emerg.user.first_name} {emerg.user.last_name}</p>
-                                    <p>{capitalize(emerg.emergency_type)}</p>
-                                    <p>{capitalize(emerg.severity)}</p>
-                                    <p>{capitalize(emerg.status)}</p>
-                                </div>
-                            </div>
-                            <p className="fw-medium">Description :</p>
-                            <p style={{ fontSize: '0.95rem' }} className="border py-3 rounded-2 px-2">{emerg.description}</p>
-                        
-                        </>
-                    ))}
-                    </div>
+                                <p className="fw-medium">Description :</p>
+                                <p style={{ fontSize: '0.95rem' }} className="border py-3 rounded-2 px-2">{emerg.description}</p>
+                            
+                            </>
+                        ))}
+                        </div>
+
+                    )}
                 </div>
                     
 
