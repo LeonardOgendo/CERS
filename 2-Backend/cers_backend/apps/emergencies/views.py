@@ -1,5 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
@@ -81,7 +82,35 @@ class EmergencyByResponderView(generics.ListAPIView):
 
     def get_queryset(self):
         responder_id = self.kwargs.get('responder_id')
-        return Emergency.objects.filter(responder_id=responder_id)
+        return Emergency.objects.filter(responder_id=responder_id).exclude(status__iexact='resolved')
+
+
+
+# To update emergency status_based on Responders input
+class UpdateEmergencyStatusView(APIView):
+    def patch(self, request, pk):
+        try:
+            emergency = Emergency.objects.get(pk=pk)
+        except Emergency.DoesNotExist:
+            return Response({"error": "Emergency not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        new_status = request.data.get('status')
+
+        if new_status:
+            emergency.status = new_status.lower()
+            emergency.save()
+
+            # If marked as resolved, update responder's status to "available"
+            if new_status.lower() == 'resolved' and emergency.responder:
+                emergency.responder.responder_status = 'available'
+                emergency.responder.save()
+
+            return Response({"message": "Status updated successfully."})
+
+        return Response({"error": "Status not provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 class LiveLocationView(generics.GenericAPIView):

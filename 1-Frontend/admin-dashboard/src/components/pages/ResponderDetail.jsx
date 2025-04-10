@@ -94,7 +94,7 @@ const ResponderDetail = () => {
                                         </div>
                                         <div>
                                             <span className="text-muted fw-medium">Description :</span>
-                                            <p className="mb-0 text-dark border mt-2 p-2 rounded-2">Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta ducimus tempora odit laudantium atque necessitatibus placeat delectus esse foed sndekl.</p>
+                                            <p className="mb-0 text-dark border mt-2 p-2 rounded-2">{emergency.description}</p>
                                         </div>
                                     </div>
                                 ))

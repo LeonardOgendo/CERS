@@ -11,7 +11,7 @@ class EmergencySummarySerializer(serializers.ModelSerializer):
 
 class ResponderSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
-    emergencies = EmergencySummarySerializer(many=True, read_only=True)
+    emergencies = serializers.SerializerMethodField()
 
     class Meta:
         model = Responder
@@ -20,4 +20,8 @@ class ResponderSerializer(serializers.ModelSerializer):
     def get_full_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
 
+    # Filters out resolved emergencies
+    def get_emergencies(self, obj):
+        unresolved_emergencies = obj.emergencies.exclude(status__iexact='resolved')
+        return EmergencySummarySerializer(unresolved_emergencies, many=True).data
 

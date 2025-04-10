@@ -13,9 +13,10 @@ const ManageResponse = () => {
     const fetchEmergency = async () => {
         try {
             const response = await axiosInstance.get(`/emergencies/responder/emergencies/${user.responder_id}/`);
-            const current = response.data
+            const emergencies = response.data;
 
-            setEmergency(current || null);
+            const current = emergencies[0] || null;
+            setEmergency(current);
             setSelectedStatus(current?.status || "");
         } catch (error) {
             console.error("Error fetching emergency", error);
@@ -24,11 +25,12 @@ const ManageResponse = () => {
         }
     };
 
+
     const handleStatusUpdate = async () => {
         if (!selectedStatus) return;
 
         try {
-            await axiosInstance.patch(`/admin/emergency/${emergency.id}/update_status/`, {
+            await axiosInstance.patch(`/emergencies/update_status/${emergency.id}/`, {
                 status: selectedStatus.toLowerCase(),
             });
             setMessage("Status updated successfully.");
@@ -66,32 +68,28 @@ const ManageResponse = () => {
             <div className="border rounded p-4 w-50">
                 <h5 className="text-primary mb-4">Emergency Details</h5>
                 
-                {emergency.length === 0 ? (
+                {!emergency ? (
                     <p className="mt-5">No Assigned Emergency</p>
                 ) : (
                     <div>
-                        {emergency.map(emerg => (
-                            <>
-                                <div className="d-flex">
-                                    <div>
-                                        <p className="fw-medium">User :</p>
-                                        <p className="fw-medium">Emergency Type :</p>
-                                        <p className="fw-medium">Severity :</p>
-                                        <p className="fw-medium">Status :</p>
-                                    </div>
-                                    <div className="ms-3">
-                                        <p>{emerg.user.first_name} {emerg.user.last_name}</p>
-                                        <p>{capitalize(emerg.emergency_type)}</p>
-                                        <p>{capitalize(emerg.severity)}</p>
-                                        <p>{capitalize(emerg.status)}</p>
-                                    </div>
-                                </div>
-                                <p className="fw-medium">Description :</p>
-                                <p style={{ fontSize: '0.95rem' }} className="border py-3 rounded-2 px-2">{emerg.description}</p>
                             
-                            </>
-                        ))}
+                        <div className="d-flex">
+                            <div>
+                                <p className="fw-medium">User :</p>
+                                <p className="fw-medium">Emergency Type :</p>
+                                <p className="fw-medium">Severity :</p>
+                                <p className="fw-medium">Status :</p>
+                            </div>
+                            <div className="ms-3">
+                                <p>{emergency.user.first_name} {emergency.user.last_name}</p>
+                                <p>{capitalize(emergency.emergency_type)}</p>
+                                <p>{capitalize(emergency.severity)}</p>
+                                <p>{capitalize(emergency.status)}</p>
+                            </div>
                         </div>
+                        <p className="fw-medium">Description :</p>
+                        <p style={{ fontSize: '0.95rem' }} className="border py-3 rounded-2 px-2">{emergency.description}</p>
+                    </div>
 
                     )}
                 </div>
