@@ -15,7 +15,7 @@ const TopNav = () => {
         setDropdown(prevState => prevState === "" ? menu : "");
     }
     return (
-        <div className='mini-nav pt-3 mb-2 pb-2 justify-content-end pe-5'>
+        <div className='mini-nav pt-3 mb-2 pb-2 justify-content-between pe-5'>
             <div className="search-bar d-flex">
                 <i className="fa fa-search mt-1 me-1 text-secondary"></i>
                 <Search />

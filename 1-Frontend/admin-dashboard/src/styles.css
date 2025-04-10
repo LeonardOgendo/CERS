@@ -6,9 +6,8 @@
 }
 .main{
     display: flex;
-    position: fixed;
-    left: 0;
-    top: 0;
+    height: 100vh;
+    overflow: hidden;
 
 }
 .brand{
@@ -76,8 +75,8 @@
 
         & .search-bar {
             margin-top: 15px;
+            margin-left: 12px;
             border: 1px solid #f2f2f2;
-            margin-right: 305px;
             height: 2.25rem;
             border-radius: 5px;
             padding: 3px 10px;
