@@ -12,7 +12,7 @@ export default function EmergencyReport() {
     description: "",
     severity: "high",
     latitude: null,
-    longitude: null
+    longitude: null,
   });
 
   const [error, setError] = useState(null);
@@ -21,17 +21,17 @@ export default function EmergencyReport() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleShareLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
             latitude: position.coords.latitude,
-            longitude: position.coords.longitude
+            longitude: position.coords.longitude,
           }));
           setError(null);
         },
@@ -63,7 +63,6 @@ export default function EmergencyReport() {
     setSuccess(false);
     setIsSubmitting(true);
 
-    // Validation
     if (!formData.description.trim()) {
       setError("Please provide a description of the emergency");
       setIsSubmitting(false);
@@ -86,18 +85,15 @@ export default function EmergencyReport() {
           description: "",
           severity: "high",
           latitude: null,
-          longitude: null
+          longitude: null,
         });
 
-        // Auto-hide success message after 3 seconds
         setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
       if (err.response?.status === 401) {
-        // Token might be expired, try to refresh
         const refreshed = await refreshToken();
         if (refreshed) {
-          // Retry the request with new token
           await handleSubmit(e);
           return;
         }
@@ -107,7 +103,7 @@ export default function EmergencyReport() {
         setError(
           err.response.data?.detail ||
           err.response.data?.message ||
-          Object.values(err.response.data)?.[0]?.[0] || // Handle serializer errors
+          Object.values(err.response.data)?.[0]?.[0] ||
           "Failed to submit report"
         );
       } else if (err.request) {
@@ -121,8 +117,8 @@ export default function EmergencyReport() {
   };
 
   return (
-    <div className="container-fluid d-flex border rounded pt-4 pe-4 pb-4 mt-2 bg-white">
-      <div className="row">
+    <div className="container-fluid d-flex border rounded pt-4 pe-4 pb-4 mt-2 bg-white shadow">
+      <div className="row w-100">
         <div className="col-md-6">
           <img
             src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp"
@@ -192,24 +188,20 @@ export default function EmergencyReport() {
             <div className="mb-4">
               <label className="form-label fw-bold">Severity Level</label>
               <div className="d-flex flex-wrap gap-3">
-                {[
-                  { value: "critical", label: "Critical" },
-                  { value: "high", label: "High" },
-                  { value: "low", label: "Low" }
-                ].map((level) => (
-                  <div className="form-check" key={level.value}>
+                {["critical", "high", "low"].map((level) => (
+                  <div className="form-check" key={level}>
                     <input
                       className="form-check-input"
                       type="radio"
                       name="severity"
-                      id={`severity-${level.value}`}
-                      value={level.value}
-                      checked={formData.severity === level.value}
+                      id={`severity-${level}`}
+                      value={level}
+                      checked={formData.severity === level}
                       onChange={handleChange}
                       required
                     />
-                    <label className="form-check-label" htmlFor={`severity-${level.value}`}>
-                      {level.label}
+                    <label className="form-check-label" htmlFor={`severity-${level}`}>
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
                     </label>
                   </div>
                 ))}
@@ -224,11 +216,16 @@ export default function EmergencyReport() {
                 disabled={isSubmitting}
               >
                 {formData.latitude ? (
-                  <><i className="bi bi-check-circle-fill me-2"></i>Location Captured</>
+                  <>
+                    <i className="bi bi-check-circle-fill me-2"></i>Location Captured
+                  </>
                 ) : (
-                  <><i className="bi bi-geo-alt-fill me-2"></i>Share My Location</>
+                  <>
+                    <i className="bi bi-geo-alt-fill me-2"></i>Share My Location
+                  </>
                 )}
               </button>
+
               {formData.latitude && (
                 <div className="mt-2 text-muted small">
                   <i className="bi bi-info-circle-fill me-1"></i>
@@ -245,7 +242,10 @@ export default function EmergencyReport() {
               >
                 {isSubmitting ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                    <span
+                      className="spinner-border spinner-border-sm me-2"
+                      role="status"
+                    ></span>
                     Reporting Emergency...
                   </>
                 ) : (

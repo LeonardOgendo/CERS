@@ -9,12 +9,10 @@ const ManageResponse = () => {
     const [selectedStatus, setSelectedStatus] = useState("");
     const [message, setMessage] = useState("");
 
-
     const fetchEmergency = async () => {
         try {
             const response = await axiosInstance.get(`/emergencies/responder/emergencies/${user.responder_id}/`);
             const emergencies = response.data;
-
             const current = emergencies[0] || null;
             setEmergency(current);
             setSelectedStatus(current?.status || "");
@@ -24,7 +22,6 @@ const ManageResponse = () => {
             setLoading(false);
         }
     };
-
 
     const handleStatusUpdate = async () => {
         if (!selectedStatus) return;
@@ -45,14 +42,25 @@ const ManageResponse = () => {
         fetchEmergency();
     }, []);
 
-    if (loading) return <div>Loading...</div>;
-
-    if (!emergency) return <div className="text-center mt-4">No assigned emergency found.</div>;
+    const formatStatus = (status) => {
+        const statusMap = {
+            reported: "Reported",
+            acknowledged: "Acknowledged",
+            in_progress: "In Progress",
+            en_route: "En Route",
+            on_site: "On Site",
+            resolved: "Resolved"
+        };
+        return statusMap[status] || status;
+    };
 
     const capitalize = (text) => {
         if (!text) return "";
         return String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
     };
+
+    if (loading) return <div>Loading...</div>;
+    if (!emergency) return <div className="text-center mt-4">No assigned emergency found.</div>;
 
     return (
         <div
@@ -64,36 +72,27 @@ const ManageResponse = () => {
                 gap: "10px"
             }}
         >
-        
             <div className="border rounded p-4 w-50">
                 <h5 className="text-primary mb-4">Emergency Details</h5>
-                
-                {!emergency ? (
-                    <p className="mt-5">No Assigned Emergency</p>
-                ) : (
-                    <div>
-                            
-                        <div className="d-flex">
-                            <div>
-                                <p className="fw-medium">User :</p>
-                                <p className="fw-medium">Emergency Type :</p>
-                                <p className="fw-medium">Severity :</p>
-                                <p className="fw-medium">Status :</p>
-                            </div>
-                            <div className="ms-3">
-                                <p>{emergency.user.first_name} {emergency.user.last_name}</p>
-                                <p>{capitalize(emergency.emergency_type)}</p>
-                                <p>{capitalize(emergency.severity)}</p>
-                                <p>{capitalize(emergency.status)}</p>
-                            </div>
+                <div>
+                    <div className="d-flex">
+                        <div>
+                            <p className="fw-medium">User :</p>
+                            <p className="fw-medium">Emergency Type :</p>
+                            <p className="fw-medium">Severity :</p>
+                            <p className="fw-medium">Status :</p>
                         </div>
-                        <p className="fw-medium">Description :</p>
-                        <p style={{ fontSize: '0.95rem' }} className="border py-3 rounded-2 px-2">{emergency.description}</p>
+                        <div className="ms-3">
+                            <p>{emergency.user.first_name} {emergency.user.last_name}</p>
+                            <p>{capitalize(emergency.emergency_type)}</p>
+                            <p>{capitalize(emergency.severity)}</p>
+                            <p>{formatStatus(emergency.status)}</p>
+                        </div>
                     </div>
-
-                    )}
+                    <p className="fw-medium">Description :</p>
+                    <p style={{ fontSize: '0.95rem' }} className="border py-3 rounded-2 px-2">{emergency.description}</p>
                 </div>
-                    
+            </div>
 
             <div className="border rounded p-4 w-50">
                 <h5 className="text-primary mb-4">Update Emergency Status</h5>
@@ -107,8 +106,9 @@ const ManageResponse = () => {
                     >
                         <option value="">Select Status</option>
                         <option value="acknowledged">Acknowledged</option>
-                        <option value="en route">En Route</option>
-                        <option value="on site">On Site</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="en_route">En Route</option>
+                        <option value="on_site">On Site</option>
                         <option value="resolved">Resolved</option>
                     </select>
                     <button

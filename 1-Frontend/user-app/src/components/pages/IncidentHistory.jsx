@@ -22,7 +22,6 @@ const IncidentHistory = () => {
     severity: ""
   });
 
-  // Format emergency type for display
   const formatEmergencyType = (type) => {
     const types = {
       health: "Health Emergency",
@@ -32,26 +31,32 @@ const IncidentHistory = () => {
     return types[type] || type;
   };
 
-  // Format status with colors
   const formatStatus = (status) => {
     const statusStyles = {
-      reported: "badge bg-warning text-dark",
+      reported: "badge bg-secondary text-white",
+      acknowledged: "badge bg-info text-white",
       in_progress: "badge bg-primary text-white",
+      en_route: "badge bg-warning text-dark",
+      on_site: "badge bg-orange text-white",
       resolved: "badge bg-success text-white"
     };
+
     const statusText = {
       reported: "Reported",
+      acknowledged: "Acknowledged",
       in_progress: "In Progress",
+      en_route: "En Route",
+      on_site: "On Site",
       resolved: "Resolved"
     };
+
     return (
       <span className={statusStyles[status]}>
-        {statusText[status]}
+        {statusText[status] || status}
       </span>
     );
   };
 
-  // Fetch incidents from API
   const fetchIncidents = async () => {
     setLoading(true);
     setError(null);
@@ -59,7 +64,6 @@ const IncidentHistory = () => {
     try {
       let url = `http://127.0.0.1:8000/api/emergencies/list?page=${pagination.page}&page_size=${pagination.pageSize}`;
 
-      // Add filters to URL if they exist
       if (filter.emergency_type) {
         url += `&emergency_type=${filter.emergency_type}`;
       }
@@ -95,24 +99,20 @@ const IncidentHistory = () => {
     }
   };
 
-  // Handle page change
   const handlePageChange = (newPage) => {
     setPagination(prev => ({ ...prev, page: newPage }));
   };
 
-  // Handle filter change
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilter(prev => ({ ...prev, [name]: value }));
   };
 
-  // Apply filters
   const applyFilters = () => {
-    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+    setPagination(prev => ({ ...prev, page: 1 }));
     fetchIncidents();
   };
 
-  // Reset filters
   const resetFilters = () => {
     setFilter({
       emergency_type: "",
@@ -122,7 +122,6 @@ const IncidentHistory = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  // Initial fetch and when pagination or filters change
   useEffect(() => {
     fetchIncidents();
   }, [pagination.page, pagination.pageSize]);
@@ -159,7 +158,6 @@ const IncidentHistory = () => {
         </div>
 
         <div className="card-body">
-          {/* Filter Section */}
           <div className="row mb-4">
             <div className="col-md-3">
               <label className="form-label">Emergency Type</label>
@@ -185,7 +183,10 @@ const IncidentHistory = () => {
               >
                 <option value="">All Statuses</option>
                 <option value="reported">Reported</option>
+                <option value="acknowledged">Acknowledged</option>
                 <option value="in_progress">In Progress</option>
+                <option value="en_route">En Route</option>
+                <option value="on_site">On Site</option>
                 <option value="resolved">Resolved</option>
               </select>
             </div>
@@ -313,7 +314,6 @@ const IncidentHistory = () => {
                 </table>
               </div>
 
-              {/* Pagination */}
               {pagination.totalCount > pagination.pageSize && (
                 <nav className="mt-3">
                   <ul className="pagination justify-content-center">
