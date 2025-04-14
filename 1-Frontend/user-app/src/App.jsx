@@ -16,6 +16,21 @@ import IncidentHistory from './components/pages/IncidentHistory';
 import FlaggedAreas from './components/pages/FlaggedAreas';
 import ProtectedRoute from './components/authentication/ProtectedRoute';
 
+// New component for Emergency Status
+const EmergencyStatus = () => {
+  return (
+    <div className="container mt-4">
+      <h2>Emergency Status</h2>
+      <div className="card">
+        <div className="card-body">
+          <p>Current emergency status and updates will appear here.</p>
+          {/* You can add more detailed status information here */}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   return (
     <div>
@@ -46,6 +61,7 @@ const App = () => {
             <Route path='emergency/report' element={<EmergencyReport />} />
             <Route path='emergency/list' element={<IncidentHistory />} />
             <Route path='emergency/flagged-areas' element={<FlaggedAreas />} />
+            <Route path='emergency/status' element={<EmergencyStatus />} />
           </Route>
         </Route>
       </Routes>
