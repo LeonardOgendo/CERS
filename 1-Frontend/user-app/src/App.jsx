@@ -15,6 +15,7 @@ import EmergencyReport from './components/pages/EmergencyReport';
 import IncidentHistory from './components/pages/IncidentHistory';
 import FlaggedAreas from './components/pages/FlaggedAreas';
 import ProtectedRoute from './components/authentication/ProtectedRoute';
+import TrackResponseStatus from './components/pages/TrackResponseStatus';
 
 // New component for Emergency Status
 const EmergencyStatus = () => {
@@ -61,7 +62,7 @@ const App = () => {
             <Route path='emergency/report' element={<EmergencyReport />} />
             <Route path='emergency/list' element={<IncidentHistory />} />
             <Route path='emergency/flagged-areas' element={<FlaggedAreas />} />
-            <Route path='emergency/status' element={<EmergencyStatus />} />
+            <Route path='emergency/status' element={<TrackResponseStatus />} />
           </Route>
         </Route>
       </Routes>

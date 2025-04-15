@@ -1,81 +1,34 @@
 import { useState, useEffect, useContext } from "react";
+import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
-import axiosInstance from "../../api/axiosConfig";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
+import { toast } from "react-toastify";
 
 const TrackResponseStatus = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [emergencies, setEmergencies] = useState([]);
+  const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState({
-    emergency_type: "",
-    status: ""
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 10,
+    totalCount: 0
   });
-
-  const fetchEmergencies = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      let url = `/emergencies/list`;
-      if (filter.emergency_type || filter.status) {
-        url += `?emergency_type=${filter.emergency_type}&status=${filter.status}`;
-      }
-
-      const response = await axiosInstance.get(url);
-      // Filter to only show emergencies reported by the current user
-      const userEmergencies = response.data.results.filter(
-        emergency => emergency.user?.id === user.id
-      );
-      setEmergencies(userEmergencies);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load emergencies");
-      console.error("Error fetching emergencies", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilter(prev => ({ ...prev, [name]: value }));
-  };
-
-  const applyFilters = () => {
-    fetchEmergencies();
-  };
-
-  const resetFilters = () => {
-    setFilter({
-      emergency_type: "",
-      status: ""
-    });
-  };
-
-  useEffect(() => {
-    fetchEmergencies();
-  }, []);
-
-  const formatEmergencyType = (type) => {
-    const types = {
-      health: "Health Emergency",
-      security: "Security Emergency",
-      fire: "Fire Emergency"
-    };
-    return types[type] || type;
-  };
+  const [filter, setFilter] = useState({
+    status: "",
+    search: ""
+  });
 
   const formatStatus = (status) => {
     const statusStyles = {
-      reported: "badge bg-secondary",
-      acknowledged: "badge bg-info",
-      in_progress: "badge bg-primary",
+      reported: "badge bg-secondary text-white",
+      acknowledged: "badge bg-info text-white",
+      in_progress: "badge bg-primary text-white",
       en_route: "badge bg-warning text-dark",
-      on_site: "badge bg-orange",
-      resolved: "badge bg-success"
+      on_site: "badge bg-orange text-white",
+      resolved: "badge bg-success text-white"
     };
 
     const statusText = {
@@ -88,114 +41,135 @@ const TrackResponseStatus = () => {
     };
 
     return (
-      <span className={`${statusStyles[status]} text-white`}>
+      <span className={statusStyles[status]}>
         {statusText[status] || status}
       </span>
     );
   };
 
-  const getStatusTimeline = (emergency) => {
-    const statusOrder = [
-      "reported",
-      "acknowledged",
-      "in_progress",
-      "en_route",
-      "on_site",
-      "resolved"
-    ];
+  const fetchIncidents = async () => {
+    setLoading(true);
+    setError(null);
 
-    const currentStatusIndex = statusOrder.indexOf(emergency.status);
+    try {
+      let url = `http://127.0.0.1:8000/api/emergencies/list?page=${pagination.page}&page_size=${pagination.pageSize}`;
+
+      if (filter.status) {
+        url += `&status=${filter.status}`;
+      }
+      if (filter.search) {
+        url += `&search=${filter.search}`;
+      }
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`
+        }
+      });
+
+      setIncidents(response.data.results);
+      setPagination(prev => ({
+        ...prev,
+        totalCount: response.data.count
+      }));
+    } catch (err) {
+      if (err.response?.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        navigate("/login");
+      } else {
+        setError(err.response?.data?.message || "Failed to load incident history");
+        toast.error("Failed to load response status");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilter(prev => ({ ...prev, [name]: value }));
+  };
+
+  const applyFilters = () => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+    fetchIncidents();
+  };
+
+  const resetFilters = () => {
+    setFilter({
+      status: "",
+      search: ""
+    });
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const getStatusTimeline = (incident) => {
+    const statusOrder = ["reported", "acknowledged", "in_progress", "en_route", "on_site", "resolved"];
+    const currentIndex = statusOrder.indexOf(incident.status);
 
     return (
       <div className="timeline">
-        {statusOrder.map((status, index) => {
-          const isCompleted = index <= currentStatusIndex;
-          const isCurrent = index === currentStatusIndex;
-
-          return (
-            <div key={status} className={`timeline-step ${isCompleted ? "completed" : ""} ${isCurrent ? "current" : ""}`}>
-              <div className="timeline-marker"></div>
-              <div className="timeline-content">
-                <h6>{formatStatusText(status)}</h6>
-                {isCurrent && emergency.responder && (
-                  <small className="text-muted">
-                    Responder: {emergency.responder.name || "Assigned"}
-                  </small>
-                )}
-              </div>
+        {statusOrder.map((status, index) => (
+          <div
+            key={status}
+            className={`timeline-item ${index <= currentIndex ? 'completed' : ''} ${index === currentIndex ? 'current' : ''}`}
+          >
+            <div className="timeline-dot"></div>
+            <div className="timeline-content">
+              <span className="timeline-status">{formatStatus(status)}</span>
+              {index === currentIndex && incident.status_updated_at && (
+                <small className="text-muted d-block">
+                  {moment(incident.status_updated_at).fromNow()}
+                </small>
+              )}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
     );
   };
 
-  const formatStatusText = (status) => {
-    const statusMap = {
-      reported: "Reported",
-      acknowledged: "Acknowledged",
-      in_progress: "In Progress",
-      en_route: "En Route",
-      on_site: "On Site",
-      resolved: "Resolved"
-    };
-    return statusMap[status] || status;
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="alert alert-danger">
-        {error}
-        <button className="btn btn-sm btn-outline-danger ms-3" onClick={fetchEmergencies}>
-          Retry
-        </button>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchIncidents();
+  }, [pagination.page, pagination.pageSize]);
 
   return (
     <div className="container-fluid mt-4">
       <div className="card shadow-sm">
-        <div className="card-header bg-white">
+        <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0 text-primary">
-            <i className="bi bi-search me-2"></i>
-            Track Emergency Response Status
+            <i className="bi bi-clock-history me-2"></i>
+            Response Status Tracking
           </h5>
+          <div>
+            <button
+              className="btn btn-sm btn-outline-primary"
+              onClick={() => fetchIncidents()}
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="spinner-border spinner-border-sm me-1"></span>
+              ) : (
+                <i className="bi bi-arrow-clockwise me-1"></i>
+              )}
+              Refresh
+            </button>
+          </div>
         </div>
 
         <div className="card-body">
           <div className="row mb-4">
-            <div className="col-md-4">
-              <label className="form-label">Emergency Type</label>
-              <select
-                name="emergency_type"
-                value={filter.emergency_type}
-                onChange={handleFilterChange}
-                className="form-select"
-              >
-                <option value="">All Types</option>
-                <option value="health">Health Emergency</option>
-                <option value="security">Security Emergency</option>
-                <option value="fire">Fire Emergency</option>
-              </select>
-            </div>
-            <div className="col-md-4">
+            <div className="col-md-6">
               <label className="form-label">Status</label>
               <select
                 name="status"
                 value={filter.status}
                 onChange={handleFilterChange}
-                className="form-select"
+                className="form-select form-select-sm"
               >
                 <option value="">All Statuses</option>
                 <option value="reported">Reported</option>
@@ -206,16 +180,16 @@ const TrackResponseStatus = () => {
                 <option value="resolved">Resolved</option>
               </select>
             </div>
-            <div className="col-md-4 d-flex align-items-end gap-2">
+            <div className="col-md-6 d-flex align-items-end">
               <button
-                className="btn btn-primary"
+                className="btn btn-sm btn-primary me-2"
                 onClick={applyFilters}
                 disabled={loading}
               >
                 Apply Filters
               </button>
               <button
-                className="btn btn-outline-secondary"
+                className="btn btn-sm btn-outline-secondary"
                 onClick={resetFilters}
                 disabled={loading}
               >
@@ -224,76 +198,166 @@ const TrackResponseStatus = () => {
             </div>
           </div>
 
-          {emergencies.length === 0 ? (
+          {error && (
+            <div className="alert alert-danger alert-dismissible fade show">
+              {error}
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setError(null)}
+              ></button>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="mt-2">Loading response status...</p>
+            </div>
+          ) : incidents.length === 0 ? (
             <div className="text-center py-5">
               <i className="bi bi-inbox text-muted" style={{ fontSize: "3rem" }}></i>
-              <p className="mt-3 text-muted">No emergency reports found</p>
-              <button
-                className="btn btn-danger mt-2"
-                onClick={() => navigate("/emergency/report")}
-              >
-                <i className="bi bi-plus-circle me-2"></i>
-                Report New Emergency
-              </button>
+              <p className="mt-3 text-muted">No emergency responses found</p>
             </div>
           ) : (
-            <div className="row">
-              {emergencies.map((emergency) => (
-                <div key={emergency.id} className="col-md-6 mb-4">
-                  <div className="card h-100">
-                    <div className="card-header d-flex justify-content-between align-items-center">
-                      <h5 className="mb-0">{formatEmergencyType(emergency.emergency_type)}</h5>
-                      {formatStatus(emergency.status)}
-                    </div>
-                    <div className="card-body">
-                      <div className="mb-3">
-                        <h6 className="text-muted">Description</h6>
-                        <p>{emergency.description}</p>
-                      </div>
+            <>
+              <div className="table-responsive">
+                <table className="table table-hover align-middle">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Emergency</th>
+                      <th>Reporter</th>
+                      <th>Location</th>
+                      <th>Current Status</th>
+                      <th>Status Timeline</th>
+                      <th>Last Updated</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {incidents.map((incident) => (
+                      <tr key={incident.id}>
+                        <td>
+                          <div className="fw-bold">{incident.emergency_type}</div>
+                          <small className="text-muted text-truncate" style={{ maxWidth: "150px" }}>
+                            {incident.description}
+                          </small>
+                        </td>
+                        <td>
+                          {incident.user?.first_name} {incident.user?.last_name}
+                        </td>
+                        <td>
+                          <small>
+                            {incident.latitude?.toFixed(4)}, {incident.longitude?.toFixed(4)}
+                          </small>
+                        </td>
+                        <td>
+                          {formatStatus(incident.status)}
+                        </td>
+                        <td>
+                          <div style={{ maxWidth: "300px" }}>
+                            {getStatusTimeline(incident)}
+                          </div>
+                        </td>
+                        <td>
+                          {moment(incident.updated_at).format("MMM D, h:mm A")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                      <div className="row mb-3">
-                        <div className="col-md-6">
-                          <h6 className="text-muted">Severity</h6>
-                          <span className={`badge ${
-                            emergency.severity === 'critical' ? 'bg-danger' :
-                            emergency.severity === 'high' ? 'bg-warning text-dark' : 'bg-secondary'
-                          }`}>
-                            {emergency.severity}
-                          </span>
-                        </div>
-                        <div className="col-md-6">
-                          <h6 className="text-muted">Reported</h6>
-                          <p>{moment(emergency.created_at).format("MMM D, YYYY h:mm A")}</p>
-                        </div>
-                      </div>
-
-                      <h6 className="text-muted mb-3">Response Progress</h6>
-                      {getStatusTimeline(emergency)}
-
-                      {emergency.responder && (
-                        <div className="mt-3">
-                          <h6 className="text-muted">Assigned Responder</h6>
-                          <p>
-                            {emergency.responder.name || "Responder"} - {emergency.responder.organization || "Organization"}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="card-footer bg-white">
+              {pagination.totalCount > pagination.pageSize && (
+                <nav className="mt-3">
+                  <ul className="pagination justify-content-center">
+                    <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
                       <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => navigate(`/emergency/${emergency.id}`)}
+                        className="page-link"
+                        onClick={() => handlePageChange(pagination.page - 1)}
+                        disabled={pagination.page === 1}
                       >
-                        View Details
+                        Previous
                       </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    </li>
+                    {[...Array(Math.ceil(pagination.totalCount / pagination.pageSize)).keys()].map(num => (
+                      <li key={num} className={`page-item ${pagination.page === num + 1 ? 'active' : ''}`}>
+                        <button
+                          className="page-link"
+                          onClick={() => handlePageChange(num + 1)}
+                        >
+                          {num + 1}
+                        </button>
+                      </li>
+                    ))}
+                    <li className={`page-item ${pagination.page * pagination.pageSize >= pagination.totalCount ? 'disabled' : ''}`}>
+                      <button
+                        className="page-link"
+                        onClick={() => handlePageChange(pagination.page + 1)}
+                        disabled={pagination.page * pagination.pageSize >= pagination.totalCount}
+                      >
+                        Next
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              )}
+            </>
           )}
         </div>
       </div>
+
+      <style jsx>{`
+        .timeline {
+          position: relative;
+          padding-left: 20px;
+        }
+        .timeline-item {
+          position: relative;
+          padding-bottom: 15px;
+        }
+        .timeline-item:last-child {
+          padding-bottom: 0;
+        }
+        .timeline-dot {
+          position: absolute;
+          left: -10px;
+          top: 5px;
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background-color: #dee2e6;
+          border: 2px solid #fff;
+        }
+        .timeline-item.completed .timeline-dot {
+          background-color: #0d6efd;
+        }
+        .timeline-item.current .timeline-dot {
+          background-color: #198754;
+          width: 14px;
+          height: 14px;
+          left: -11px;
+        }
+        .timeline-content {
+          margin-left: 10px;
+        }
+        .timeline-status {
+          font-size: 0.8rem;
+        }
+        .timeline-item:not(:last-child)::after {
+          content: '';
+          position: absolute;
+          left: -6px;
+          top: 17px;
+          bottom: -15px;
+          width: 2px;
+          background-color: #dee2e6;
+        }
+        .timeline-item.completed:not(:last-child)::after {
+          background-color: #0d6efd;
+        }
+      `}</style>
     </div>
   );
 };
