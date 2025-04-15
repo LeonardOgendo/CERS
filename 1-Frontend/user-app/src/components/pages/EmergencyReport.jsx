@@ -1,5 +1,5 @@
 import { useState, useContext } from "react";
-import EmergencyAPI from "../../api/emergencyAPI"; // Your emergency API instance
+import EmergencyAPI from "../../api/emergencyAPI";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -13,27 +13,78 @@ export default function EmergencyReport() {
     severity: "high",
     latitude: null,
     longitude: null,
+    location_name: "",
   });
 
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingLocationName, setIsFetchingLocationName] = useState(false);
+
+  const fetchLocationName = async (lat, lng) => {
+    setIsFetchingLocationName(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch location name");
+
+      const data = await response.json();
+
+      let locationName = "";
+      if (data.address) {
+        const address = data.address;
+        locationName = [
+          address.road,
+          address.neighbourhood,
+          address.suburb,
+          address.city,
+          address.country
+        ].filter(Boolean).join(", ");
+      } else {
+        locationName = data.display_name || "Unknown location";
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        location_name: locationName
+      }));
+
+      return locationName;
+    } catch (error) {
+      console.error("Error fetching location name:", error);
+      setFormData(prev => ({
+        ...prev,
+        location_name: `Location near coordinates (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+      }));
+      return null;
+    } finally {
+      setIsFetchingLocationName(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleShareLocation = () => {
+  const handleShareLocation = async () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData((prev) => ({
-            ...prev,
+        async (position) => {
+          const newData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
+          };
+
+          setFormData((prev) => ({
+            ...prev,
+            ...newData
           }));
+
           setError(null);
+          await fetchLocationName(newData.latitude, newData.longitude);
         },
         (error) => {
           setError("Error fetching location: " + error.message);
@@ -86,6 +137,7 @@ export default function EmergencyReport() {
           severity: "high",
           latitude: null,
           longitude: null,
+          location_name: "",
         });
 
         setTimeout(() => setSuccess(false), 3000);
@@ -213,11 +265,12 @@ export default function EmergencyReport() {
                 type="button"
                 className={`btn w-100 ${formData.latitude ? "btn-success" : "btn-primary"}`}
                 onClick={handleShareLocation}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isFetchingLocationName}
               >
                 {formData.latitude ? (
                   <>
-                    <i className="bi bi-check-circle-fill me-2"></i>Location Captured
+                    <i className="bi bi-check-circle-fill me-2"></i>
+                    {isFetchingLocationName ? "Fetching location details..." : "Location Captured"}
                   </>
                 ) : (
                   <>
@@ -227,9 +280,17 @@ export default function EmergencyReport() {
               </button>
 
               {formData.latitude && (
-                <div className="mt-2 text-muted small">
-                  <i className="bi bi-info-circle-fill me-1"></i>
-                  Coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                <div className="mt-2">
+                  <div className="text-muted small">
+                    <i className="bi bi-geo-alt-fill me-1"></i>
+                    Coordinates: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                  </div>
+                  {formData.location_name && (
+                    <div className="mt-1 small fw-bold">
+                      <i className="bi bi-pin-map-fill me-1"></i>
+                      Location: {formData.location_name}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

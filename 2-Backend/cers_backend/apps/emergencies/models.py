@@ -8,7 +8,7 @@ class Emergency(models.Model):
         ('security', 'Security Emergency'),
         ('fire', 'Fire Emergency'),
     ]
-    
+
     SEVERITY_LEVELS = [
         ('critical', 'Critical'),
         ('high', 'High'),
@@ -33,6 +33,7 @@ class Emergency(models.Model):
     )
     latitude = models.FloatField()
     longitude = models.FloatField()
+    location_name = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         max_length=20,
@@ -53,7 +54,7 @@ class Emergency(models.Model):
         blank=True,
         related_name='emergencies'
     )
-    
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.emergency_type == 'security':
