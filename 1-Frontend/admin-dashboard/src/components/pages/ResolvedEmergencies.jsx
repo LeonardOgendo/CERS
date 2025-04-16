@@ -1,8 +1,90 @@
+import { useEffect, useState } from "react";
+import { viewResolvedEmergencies } from "../../api/emergencies";
+
 
 const ResolvedEmergencies = () => {
-    return (
-        <p>... awaiting JSON</p>
-    )
-}
+    const [emergencies, setEmergencies] = useState([]);
+    const [error, setError] = useState(null);
 
-export default ResolvedEmergencies
+
+    useEffect(() => {
+        const fetchEmergencies = async () => {
+            try {
+                const data = await viewResolvedEmergencies();
+
+                if (data.error) {
+                    setError(data.error);
+                } else {
+                    setEmergencies(data?.results);
+                }
+            } catch (error) {
+                setError("An unexpected error occurred!");
+            }
+        };
+
+
+        fetchEmergencies();
+       
+        const interval = setInterval(fetchEmergencies, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+
+    const capitalize = (text) => {
+        if (!text) return "";
+        return String(text).charAt(0).toUpperCase() + String(text).slice(1).toLowerCase();
+    };
+
+    const truncateText = (text, length = 50) => {
+        return text.length > length ? text.substring(0, length) + "..." : text;
+    };
+
+    return (
+        <div className="container mt-2">
+            <h3 className="mb-4">Resolved Emergencies</h3>
+
+            {error ? (
+                <p className="text-danger text-center">{error}</p>
+            ) : emergencies.length === 0 ? (
+                <p className="text-center mt-5">No Active Emergencies</p>
+            ) : (
+                <div className="shadow-lg p-3 mb-5 bg-white rounded">
+                    <table className="table table-hover">
+                        <thead className="bg-dark text-white">
+                            <tr>
+                                <th>#</th>
+                                <th>User</th>
+                                <th>Emergency Type</th>
+                                <th>Description</th>
+                                <th>Severity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {emergencies.map((emergency, index) => (
+                                <tr key={index}>
+                                    <td className="fw-bold">{index + 1}</td>
+                                    <td>
+                                        {emergency.user.first_name} {emergency.user.last_name}
+                                    </td>
+                                    <td>{capitalize(emergency.emergency_type)}</td>
+                                    <td>{truncateText(capitalize(emergency.description))}</td>
+                                    <td>
+                                        <span className={`badge ${
+                                            emergency.severity === "critical" ? "bg-danger" :
+                                            emergency.severity === "high" ? "bg-warning text-dark" :
+                                            "bg-success"
+                                        }`}>
+                                            {capitalize(emergency.severity)}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ResolvedEmergencies;

@@ -61,6 +61,32 @@ class EmergencyListView(generics.ListAPIView):
         return queryset
 
 
+# Active Emergencies
+class ActiveEmergenciesListView(generics.ListAPIView):
+    serializer_class = EmergencySerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['emergency_type', 'status', 'severity']
+
+    def get_queryset(self):
+        queryset = Emergency.objects.all().order_by('-created_at').exclude(status='resolved')
+
+        return queryset
+
+
+# Resolved Emergencies
+class ResolvedEmergenciesListView(generics.ListAPIView):
+    serializer_class = EmergencySerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['emergency_type', 'status', 'severity']
+
+    def get_queryset(self):
+        queryset = Emergency.objects.all().order_by('-created_at').filter(status='resolved')
+
+        return queryset
+
+
 # To Handle Incident History for user-app(React Frontend)
 class EmergencyDetailView(generics.RetrieveAPIView):
     queryset = Emergency.objects.all()
@@ -108,6 +134,16 @@ class UpdateEmergencyStatusView(APIView):
             return Response({"message": "Status updated successfully."})
 
         return Response({"error": "Status not provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# All Emergencies
+class AllEmergencies(generics.ListAPIView):
+    serializer_class = EmergencySerializer
+    # permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Emergency.objects.all()
 
 
 

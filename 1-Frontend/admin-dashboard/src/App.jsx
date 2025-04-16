@@ -2,7 +2,7 @@ import './App.css';
 import './styles.css';
 
 import { ToastContainer } from 'react-toastify';
-import {Routes, Route } from 'react-router-dom';
+import {Routes, Route, Router } from 'react-router-dom';
 import Login from './components/authentication/Login';
 import Signup from './components/authentication/Signup';
 import Dashboard from './components/pages/Dashboard';
@@ -21,6 +21,8 @@ import ResponderAssignmentDetail from './components/pages/ResponderAssignmentDet
 import ResponderDetail from './components/pages/ResponderDetail';
 import MyStatus from './components/pages/MyStatus';
 import ManageResponse from './components/pages/ManageResponse';
+import TotalEmergencyReports from './components/pages/TotalEmergencyReports';
+import TotalUsers from './components/pages/TotalUsers';
 
 import ProtectedRoute from './components/authentication/ProtectedRoute';
 
@@ -53,6 +55,9 @@ const App = () => {
                         <Route path="messages" element={<Messages />} />
                         <Route path="actions/mystatus/view" element={<MyStatus />} />
                         <Route path="actions/manage/response" element={<ManageResponse />} />
+
+                        <Route path="analytics/emergencies/all" element={<TotalEmergencyReports />} />
+                        <Route path="analytics/users/all-users" element={<TotalUsers />} />
                     </Route>
                 </Route>
             </Routes>

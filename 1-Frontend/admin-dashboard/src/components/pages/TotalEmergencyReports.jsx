@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import { viewActiveEmergencies } from "../../api/emergencies";
+import { viewTotalEmergencyReports } from "../../api/emergencies";
 
-const ActiveEmergencies = () => {
+const TotalEmergencyReports = () => {
     const [emergencies, setEmergencies] = useState([]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchEmergencies = async () => {
             try {
-                const data = await viewActiveEmergencies();
+                const data = await viewTotalEmergencyReports();
 
                 if (data.error) {
                     setError(data.error);
                 } else {
-                    setEmergencies(data.results);
+                    setEmergencies(data);
                 }
             } catch (error) {
                 setError("An unexpected error occurred!");
@@ -37,12 +37,12 @@ const ActiveEmergencies = () => {
 
     return (
         <div className="container mt-2">
-            <h3 className="mb-4">Active Emergencies</h3>
+            <h3 className="mb-4">Emergencies History</h3>
 
             {error ? (
                 <p className="text-danger text-center">{error}</p>
             ) : emergencies.length === 0 ? (
-                <p className="text-center mt-5">No Active Emergencies</p>
+                <p className="text-center mt-5">No Emergencies found</p>
             ) : (
                 <div className="shadow-lg p-3 mb-5 bg-white rounded">
                     <table className="table table-hover">
@@ -93,4 +93,4 @@ const ActiveEmergencies = () => {
     );
 };
 
-export default ActiveEmergencies;
+export default TotalEmergencyReports;
