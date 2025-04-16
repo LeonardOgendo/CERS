@@ -1,5 +1,5 @@
 export default function Footer(){
     return(
-        <p>&copy;2025 Campus Emergency Response System | All Rights Reserved </p>
+        <p style={{ fontSize: '0.85rem' }}>&copy;2025 Campus Emergency Response System | All Rights Reserved </p>
     )
 }
