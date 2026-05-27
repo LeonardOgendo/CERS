@@ -1,7 +1,7 @@
-## CERS - Campus Emergency Response System
+## CERS
 
 ### 📌 Overview
-CERS (Campus Emergency Response System) is a cross-platform web application 
+CERS is a cross-platform web application 
 designed to enhance campus safety by providing real-time emergency reporting, 
 responder coordination, and instant alerts. Built with React (frontend) and Django (backend) 
 using DRF for API communication, CERS ensures that emergencies are reported, assigned, and tracked efficiently.
